@@ -10,6 +10,10 @@ from cobra.core.configuration import Configuration
 # Local imports
 import imatpy.model_utils
 
+# Setup file paths
+BASE_PATH = pathlib.Path(__file__).absolute().parent.parent
+DATA_PATH = BASE_PATH / "data"
+
 
 class TestParseFileType(unittest.TestCase):
     """
@@ -18,7 +22,7 @@ class TestParseFileType(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        Configuration.solver = "glpk"  # Use GLPK solver for testing
+        Configuration().solver = "glpk"  # Use GLPK solver for testing
 
     def test_parse_file_type(self):
         self.assertEqual(
@@ -43,10 +47,12 @@ class TestModelIO(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        Configuration.solver = "glpk"  # Use GLPK solver for testing
+        Configuration().solver = "glpk"  # Use GLPK solver for testing
 
     def test_read_model(self):
-        data_path = str(pathlib.Path(__file__).parent.joinpath("data"))
+        data_path = str(
+            pathlib.Path(__file__).absolute().parent.joinpath("data")
+        )
         model_json = imatpy.model_utils.read_model(
             os.path.join(data_path, "textbook_model.json")
         )

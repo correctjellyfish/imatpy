@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Standard Library Imports
 import copy
 import importlib.util
@@ -5,9 +7,9 @@ import pathlib
 import unittest
 from unittest import skipIf
 
-import pandas as pd
-
 # External Imports
+import cobra
+import pandas as pd
 from cobra.core.configuration import Configuration
 
 # Local Imports
@@ -29,17 +31,19 @@ def setup(cls):
 
 
 class TestAddSingleConstraints(unittest.TestCase):
-    model = None
-    data_path = None
-    rxn_weights = None
-    epsilon = None
-    threshold = None
+    model: cobra.Model | None = None
+    data_path: pathlib.Path | None = None
+    rxn_weights: pd.Series | None = None
+    epsilon: float | None = None
+    threshold: float | None = None
 
     @classmethod
     def setUpClass(cls):
         setup(cls)
 
     def test_imat_neg_weight(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
         test_model = self.model.copy()
         imatpy.imat._imat_neg_weight_(
             model=test_model, rxn="r_C_H", threshold=self.threshold
@@ -64,6 +68,8 @@ class TestAddSingleConstraints(unittest.TestCase):
         # https://docs.sympy.org/latest/modules/solvers/inequalities.html
 
     def test_imat_pos_weight(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
         test_model = self.model.copy()
         imatpy.imat._imat_pos_weight_(
             model=test_model, rxn="r_C_H", epsilon=self.epsilon
@@ -95,6 +101,11 @@ class TestAddImatConstraints(unittest.TestCase):
         setup(cls)
 
     def test_add_imat_constraints_inplace(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
+
         test_model = self.model.copy()
         copy_model = self.model.copy()
         imatpy.imat.add_imat_constraints_(
@@ -121,6 +132,11 @@ class TestAddImatConstraints(unittest.TestCase):
         self.assertTrue(model_eq(test_model, copy_model))
 
     def test_add_imat_constraints_not_inplace(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
+
         test_model = self.model.copy()
         copy_model = test_model.copy()
         updated_model = imatpy.imat.add_imat_constraints(
@@ -159,6 +175,10 @@ class TestAddImatObjective(unittest.TestCase):
         setup(cls)
 
     def test_add_objective_inplace(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         # add imat constraints
         imatpy.imat.add_imat_constraints_(
@@ -185,6 +205,10 @@ class TestAddImatObjective(unittest.TestCase):
         # TODO: Check that the objective is actually correct
 
     def test_add_objective_not_inplace(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         # add imat constraints
         imatpy.imat.add_imat_constraints_(
@@ -194,7 +218,6 @@ class TestAddImatObjective(unittest.TestCase):
             threshold=self.threshold,
         )
         copy_model = copy.deepcopy(test_model)
-        imatpy.imat._enforce_binary(model=copy_model)
         # Check that the copy creates an identical model
         self.assertTrue(model_eq(test_model, copy_model, verbose=True))
         # add imat objective
@@ -227,6 +250,10 @@ class TestImat(unittest.TestCase):
         setup(cls)
 
     def imat_helper(self, test_model):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         copy_model = test_model.copy()
         # Perform iMAT
         imat_res = imatpy.imat.imat(
@@ -262,6 +289,10 @@ class TestImat(unittest.TestCase):
         importlib.util.find_spec("cplex") is None, "cplex is not installed"
     )
     def test_imat_cplex(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         test_model.solver = "cplex"
         self.imat_helper(test_model)
@@ -271,6 +302,10 @@ class TestImat(unittest.TestCase):
         "gurobipy is not installed",
     )
     def test_imat_gurobi(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         test_model.solver = "gurobi"
         self.imat_helper(test_model)
@@ -279,6 +314,10 @@ class TestImat(unittest.TestCase):
         importlib.util.find_spec("swiglpk") is None, "glpk is not installed"
     )
     def test_imat_glpk(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         test_model.solver = "glpk"
         self.imat_helper(test_model)
@@ -296,6 +335,10 @@ class TestImatExtensionFunctions(unittest.TestCase):
         setup(cls)
 
     def test_compute_imat_objective(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         # Solve imat problem
         imat_sol = imatpy.imat.imat(

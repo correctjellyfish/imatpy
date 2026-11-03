@@ -1,138 +1,145 @@
 # Standard Library Imports
-import os
 import pathlib
 import random
 import unittest
 
-import pandas as pd
-
 # External Imports
+import cobra
+import pandas as pd
 from cobra.core.configuration import Configuration
 
-from imatpy.model_utils import read_model
-
 # Local Imports
+from imatpy.model_utils import read_model
 from imatpy.parse_gpr import (
+    IMAT_FUNC_DICT,
     eval_gpr,
     gene_to_rxn_weights,
-    str_to_list,
-    to_postfix,
 )
-
-
-class TestStrToList(unittest.TestCase):
-    def test_token_parse(self):
-        self.assertEqual(str_to_list("Rv0031"), ["Rv0031"])
-        self.assertEqual(str_to_list(""), [])
-
-    def test_parenthesis_parse(self):
-        self.assertEqual(str_to_list("(Rv0031)"), ["(", "Rv0031", ")"])
-        self.assertEqual(str_to_list("(Rv0031"), ["(", "Rv0031"])
-        self.assertEqual(str_to_list("Rv0031)"), ["Rv0031", ")"])
-        self.assertEqual(
-            str_to_list("(Rv0031)AND"), ["(", "Rv0031", ")", "AND"]
-        )
-
-    def test_operator_replacements(self):
-        self.assertEqual(
-            str_to_list("Rv0031 and Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 anD Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 And Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 or Rv0098"), ["Rv0031", "OR", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 | Rv0098"), ["Rv0031", "OR", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 || Rv0098"), ["Rv0031", "OR", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031|Rv0098"), ["Rv0031", "OR", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031||Rv0098"), ["Rv0031", "OR", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 & Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 && Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031&Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-        self.assertEqual(
-            str_to_list("Rv0031&&Rv0098"), ["Rv0031", "AND", "Rv0098"]
-        )
-
-    def test_replacement_dict(self):
-        self.assertEqual(
-            str_to_list("Rv0031 n Rv0098", {"n": "NOT"}),
-            ["Rv0031", "NOT", "Rv0098"],
-        )
-        self.assertEqual(
-            str_to_list("Rv0031 n Rv0098", {"n": "NOT", "Rv": "rv"}),
-            ["rv0031", "NOT", "rv0098"],
-        )
-        self.assertEqual(
-            str_to_list("~Rv0031", {"~": "NOT "}), ["NOT", "Rv0031"]
-        )
-
-
-class TestToPostfix(unittest.TestCase):
-    def test_single_token(self):
-        self.assertEqual(to_postfix(["Rv0031"]), ["Rv0031"])
-
-    def test_single_infix(self):
-        self.assertEqual(
-            to_postfix(["Rv0031", "AND", "Rv0098"]),
-            ["Rv0031", "Rv0098", "AND"],
-        )
-
-    def test_parenthesis(self):
-        self.assertEqual(
-            to_postfix(["(", "Rv0031", "AND", "Rv0098", ")", "OR", "Rv1234"]),
-            ["Rv0031", "Rv0098", "AND", "Rv1234", "OR"],
-        )
-
-    def test_known_postfix_precedence(self):
-        input_expr = ["5", "*", "2", "-", "1"]
-        precedence = {"*": 2, "-": 1}
-        output_expr = ["5", "2", "*", "1", "-"]
-        self.assertEqual(to_postfix(input_expr, precedence), output_expr)
-
-    def test_known_postfix_parenthesis(self):
-        input_expr = ["5", "*", "(", "2", "-", "3", ")"]
-        precedence = {"*": 2, "-": 1}
-        output_expr = ["5", "2", "3", "-", "*"]
-        self.assertEqual(to_postfix(input_expr, precedence), output_expr)
 
 
 class TestEvalGpr(unittest.TestCase):
     def test_single_gene(self):
-        gpr_str = "Rv0031"
-        gene_weights = pd.Series({"Rv0031": 1})
-        self.assertEqual(eval_gpr(gpr_str, gene_weights), 1)
+        gpr = cobra.core.gene.GPR.from_string("g001")
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([1.0], index=["g001"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
 
-    def test_two_gene(self):
-        gpr_str = "Rv0031 AND Rv0098"
-        gene_weights = pd.Series({"Rv0031": 1, "Rv0098": -1})
-        self.assertEqual(eval_gpr(gpr_str, gene_weights), -1)
-        gpr_str = "Rv0031 OR Rv0098"
-        self.assertEqual(eval_gpr(gpr_str, gene_weights), 1)
+    def test_or(self):
+        gpr = cobra.core.gene.GPR.from_string("g001 or g002")
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([1.0, 0.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([0.0, 0.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([0.0, 1.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([1.0, 1.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
 
-    def test_parenthesis(self):
-        gpr_string = "(Rv0031 AND Rv0098) OR Rv1234"
-        gene_weights = pd.Series({"Rv0031": 1, "Rv0098": -1, "Rv1234": 1})
-        self.assertEqual(eval_gpr(gpr_string, gene_weights), 1)
-        gpr_string = "(Rv0031 AND Rv0098) OR (Rv1234 AND Rv0098)"
-        self.assertEqual(eval_gpr(gpr_string, gene_weights), -1)
+    def test_and(self):
+        gpr = cobra.core.gene.GPR.from_string("g001 and g002")
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([1.0, 0.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([0.0, 0.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([0.0, 1.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series([1.0, 1.0], index=["g001", "g002"]),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+
+    def test_arity_3(self):
+        gpr = cobra.core.gene.GPR.from_string("g001 and g002 or g003 ")
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series(
+                [1.0, 0.0, 1.0], index=["g001", "g002", "g003"]
+            ),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series(
+                [1.0, 1.0, 0.0], index=["g001", "g002", "g003"]
+            ),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series(
+                [0.0, 1.0, 0.0], index=["g001", "g002", "g003"]
+            ),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
+
+    def test_repeated(self):
+        gpr = cobra.core.gene.GPR.from_string("g001 or g002 or g003 or g004")
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series(
+                [1.0, 0.0, 1.0, 0.0], index=["g001", "g002", "g003", "g004"]
+            ),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 1.0)
+        gpr_res = eval_gpr(
+            gpr,
+            gene_weights=pd.Series(
+                [0.0, 0.0, 0.0, 0.0], index=["g001", "g002", "g003", "g004"]
+            ),
+            fn_dict=IMAT_FUNC_DICT,
+            fill_val=0,
+        )
+        self.assertAlmostEqual(gpr_res, 0.0)
 
 
 class TestGeneToRxnWeights(unittest.TestCase):
@@ -142,9 +149,9 @@ class TestGeneToRxnWeights(unittest.TestCase):
     def setUpClass(cls):
         Configuration().solver = "glpk"
         data_path = pathlib.Path(__file__).parent.joinpath("data")
-        test_model_path = os.path.join(data_path, "test_model.json")
+        test_model_path = data_path / "test_model.json"
         cls.test_model = read_model(test_model_path)
-        textbook_model_path = os.path.join(data_path, "textbook_model.json")
+        textbook_model_path = data_path / "textbook_model.json"
         cls.textbook_model = read_model(textbook_model_path)
         cls.test_model_weights = pd.Series(
             {
@@ -182,6 +189,7 @@ class TestGeneToRxnWeights(unittest.TestCase):
         )
 
     def test_simple_model(self):
+        assert self.test_model is not None, "Failed to correctly setup test"
         rxn_weights = gene_to_rxn_weights(
             self.test_model, self.test_model_weights
         )
@@ -193,7 +201,9 @@ class TestGeneToRxnWeights(unittest.TestCase):
         )
         for gene in gene_weights.index:
             gene_weights[gene] = random.choice([-1.0, 0.0, 1.0])
-        rxn_weights = gene_to_rxn_weights(self.textbook_model, gene_weights)
+        rxn_weights = gene_to_rxn_weights(
+            self.textbook_model, gene_weights, fill_val=0
+        )
         self.assertIsInstance(rxn_weights, pd.Series)
         self.assertEqual(len(rxn_weights), len(self.textbook_model.reactions))
         self.assertEqual(rxn_weights.dtype, float)

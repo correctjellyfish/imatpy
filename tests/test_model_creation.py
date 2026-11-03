@@ -28,7 +28,7 @@ from imatpy.model_utils import _check_objective_eq, model_eq, read_model
 
 def setup(cls):
     Configuration().solver = "glpk"  # Use GLPK solver for testing
-    cls.data_path = pathlib.Path(__file__).parent.absolute() / "data"
+    cls.data_path = pathlib.Path(__file__).absolute().parent / "data"
     cls.model = read_model(cls.data_path / "test_model.xml")
     cls.rxn_weights = pd.read_csv(
         cls.data_path / "test_model_reaction_weights.csv",
@@ -57,6 +57,10 @@ class TestModelCreation(unittest.TestCase):
         setup(cls)
 
     def test_imat_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         imat_sol = imatpy.imat.imat(
             model=test_model,
@@ -96,10 +100,14 @@ class TestModelCreation(unittest.TestCase):
         )
         self.assertTrue(
             np.abs(imat_objective - imat_sol.objective_value)
-            < self.objective_tolerance * imat_sol.objective_value
+            < self.objective_tolerance * imat_sol.objective_value  # ty: ignore[unsupported-operator]
         )
 
     def test_simple_bounds_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = simple_bounds_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
@@ -127,6 +135,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_subset_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = subset_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
@@ -154,6 +166,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_fva_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = fva_model(
             test_model,
@@ -185,6 +201,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_milp_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = milp_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
