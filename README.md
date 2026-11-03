@@ -1,4 +1,4 @@
-# Readme
+# Welcome to iMATpy
 
 ![iMATpy Logo](imatpy_logo.png "iMATpy Logo")
 
@@ -30,12 +30,9 @@ pip install imatpy
 ## Solvers
 
 In order to solve the optimization problems associated with iMAT, a LP/MILP
-solver is required. By default this package uses the 'hybrid' solver of
-[optlang](https://optlang.readthedocs.io/en/latest/), which uses the
-[HiGHSpy](https://ergo-code.github.io/HiGHS/stable/) and
-[OSQP](https://osqp.org/) solvers for MILP problems, since this is an
-open-source option which doesn't require a license to use (and so shouldn't
-require any additional setup). [Gurobi](https://www.gurobi.com/) and
+solver is required. By default this package uses the
+[GLPK](https://www.gnu.org/software/glpk/) solver which is installed
+automatically by COBRApy. [Gurobi](https://www.gurobi.com/) and
 [CPLEX](https://www.ibm.com/products/ilog-cplex-optimization-studio/cplex-optimizer)
 can also be used (for improved performance). Both Gurobi and CPLEX have free
 academic licenses available
