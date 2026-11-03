@@ -31,6 +31,7 @@ def generate_model(
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
     objective_tolerance: float = DEFAULTS["objective_tolerance"],
+    **kwargs,
 ):
     """
     Generate a context specific model using iMAT.
@@ -57,6 +58,10 @@ def generate_model(
         (used for imat_restrictions and fva methods). The objective will
         be restricted to be within objective_tolerance*objective_value of the
         optimal objective value. (default: 5e-2)
+    kwargs
+        Keyword arguments passed to underyling COBRApy functions,
+        (like `COBRApy's flux_variability_analysis <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/variability/index.html>`_
+        if `method` is 'fva')
 
     Returns
     -------
@@ -83,7 +88,12 @@ def generate_model(
         return subset_model(model, rxn_weights, epsilon, threshold)
     elif method == "fva":
         return fva_model(
-            model, rxn_weights, epsilon, threshold, objective_tolerance
+            model,
+            rxn_weights,
+            epsilon,
+            threshold,
+            objective_tolerance,
+            **kwargs,
         )
     elif method == "milp":
         return milp_model(model, rxn_weights, epsilon, threshold)
@@ -270,8 +280,6 @@ def subset_model(model, rxn_weights, epsilon, threshold):
     to be lowly expressed (weight<0), and  inactive (flux<threshold), the
     reaction bounds are set to (-threshold, threshold). This model will
     not include integer constraints, and so can be used for sampling.
-        A context specific cobra.Model.
-
     """
     updated_model = model.copy()
     imat_solution = imat(model, rxn_weights, epsilon, threshold)
@@ -295,7 +303,7 @@ def fva_model(
     epsilon,
     threshold,
     objective_tolerance,
-    loopless: bool = True,
+    **kwargs,
 ):
     """
     Generate a context specific model by setting bounds on reactions based on
@@ -318,9 +326,8 @@ def fva_model(
         The objective will be restricted to be within
         objective_tolerance*objective_value of the optimal objective value.
         (default: 5e-2)
-    loopless : bool
-        Whether to use the loopless FVA method (default: True).
-        If False, the standard FVA method will be used.
+    kwargs
+        Keyword arguments passed to `COBRApy's flux_variability_analysis <https://cobrapy.readthedocs.io/en/latest/autoapi/cobra/flux_analysis/variability/index.html>`_
 
     Returns
     -------
@@ -336,8 +343,6 @@ def fva_model(
     bounds. This model is not guaranteed to have fluxes consistent
     with the optimal iMAT objective. This model will not include integer
     constraints, and so can be used for sampling.
-        A context specific cobra.Model.
-
     """
     updated_model = model.copy()
     imat_model = add_imat_constraints(model, rxn_weights, epsilon, threshold)
@@ -345,7 +350,7 @@ def fva_model(
     fva_res = cobra.flux_analysis.flux_variability_analysis(
         imat_model,
         fraction_of_optimum=(1 - objective_tolerance),
-        loopless=loopless,
+        **kwargs,
     ).dropna()
     reactions = rxn_weights[~np.isclose(rxn_weights, 0)].index.tolist()
     for rxn in reactions:
