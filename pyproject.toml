@@ -3,46 +3,93 @@ name = "imatpy"
 version = "0.2.0"
 description = "Python implementation of the Integrative Metabolic Analysis Tool (iMAT) algorithm for context specific metabolic modeling."
 authors = [{ name = "Braden Griebel", email = "bgriebel@uw.edu" }]
-# Pinning python to less than 3.13, as cobra has bug in 3.13 with copy functions (fixed in next cobra release)
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.9,<3.15"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "cobra>=0.27.0",
-    "numpy>=1.26.0",
-    "pandas>=2.0.0",
-    "optlang>=1.8.3",
-    "sympy>=1.12",
-    "scipy>=1.12.0",
+  "cobra>=0.27.0",
+  "numpy>=1.26.0",
+  "pandas>=2.0.0",
+  "optlang>=1.8.1",
+  "sympy>=1.12",
+  "scipy>=1.12.0",
 ]
 
 [project.urls]
-homepage = "https://github.com/Braden-Griebel/imatpy"
-repository = "https://github.com/Braden-Griebel/imatpy"
-documentation = "https://imatpy.readthedocs.io/en/stable/"
+Homepage = "https://github.com/correctjellyfish/imatpy"
+Repository = "https://github.com/correctjellyfish/imatpy"
+Documentation = "https://imatpy.readthedocs.io/en/stable/"
+Issues = "https://github.com/correctjellyfish/imatpy/issues"
+Changelog = "https://github.com/correctjellyfish/imatpy/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-gurobipy = ["gurobipy>=11.0.0"]
-cplex = ["cplex>=22.1.1.1"]
+cplex = [
+  "cplex>=22.1.0.0,<22.2.0.0 ; python_version=='3.9'",
+  "cplex>=22.2.0.0 ; python_version>'3.9'",
+]
+gurobi = ["gurobipy>=11.0.0"]
+hybrid = ["highspy>=1.10.0", "osqp>=1.0.3"]
 
 [dependency-groups]
 dev = [
-    "pytest>=7.4.2,<8",
-    "ruff>=0.12.0",
+  "ruff<1.0.0,>=0.11.0",
+  "ty>=0.0.10",
+  "pre-commit<4.0.0,>=3.7.1",
+  "pandas-stubs>=2.2.2.240807",
+  "types-networkx>=3.4.2.20250509",
+  "tox>=4.30.3",
+  "tox-uv>=1.28.1",
+  "jupyter>=1.1.1",
+  "debugpy>=1.8.21",
 ]
+test = ["highspy>=1.10.0", "osqp>=1.0.3", "pytest>=8.0.1"]
 docs = [
-    "sphinx>=7.2.6,<8",
-    "sphinx-exec-code>=0.10,<0.11",
-    "sphinx-rtd-theme>=1.3.0,<2",
-    "jupyter>=1.0.0,<2",
-]
-
-[tool.uv]
-default-groups = [
-    "dev",
-    "docs",
+  "sphinx>=7.2.6,<8",
+  "sphinx-exec-code>=0.10,<0.11",
+  "sphinx-rtd-theme>=1.3.0,<2",
+  "jupyter>=1.0.0,<2",
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.12.1,<0.13"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  # This warning just occurs with essentially all multi-processing calls
+  'ignore:This process \(pid=\d+\) is multi-threaded, use of fork\(\) may lead to deadlocks in the child\.:DeprecationWarning',
+]
+
+# Setup ruff
+[tool.ruff]
+line-length = 79
+indent-width = 4
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "site-packages",
+  "venv",
+  "*.ipynb",
+]
