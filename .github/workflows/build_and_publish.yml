@@ -1,0 +1,40 @@
+name: Build and Publish
+
+on:
+  workflow_run:
+    workflows: [Check] # only run when check is run
+    types: [completed]
+    branches: "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build_dist:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+        with:
+          cache-suffix: "-build"
+      - name: Build dist
+        run: uv build
+      - name: Upload dist
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-dist
+          path: dist/*
+  upload_pypi:
+    needs: [build_dist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: ci-*
+          path: dist
+          merge-multiple: true
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
