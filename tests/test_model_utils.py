@@ -21,9 +21,13 @@ class TestParseFileType(unittest.TestCase):
         Configuration.solver = "glpk"  # Use GLPK solver for testing
 
     def test_parse_file_type(self):
-        self.assertEqual(imatpy.model_utils._parse_file_type("joblib"), "joblib")
+        self.assertEqual(
+            imatpy.model_utils._parse_file_type("joblib"), "joblib"
+        )
         self.assertEqual(imatpy.model_utils._parse_file_type("pkl"), "pickle")
-        self.assertEqual(imatpy.model_utils._parse_file_type("pickle"), "pickle")
+        self.assertEqual(
+            imatpy.model_utils._parse_file_type("pickle"), "pickle"
+        )
         self.assertEqual(imatpy.model_utils._parse_file_type("yml"), "yaml")
         self.assertEqual(imatpy.model_utils._parse_file_type("xml"), "sbml")
         self.assertEqual(imatpy.model_utils._parse_file_type("jsn"), "json")
@@ -70,7 +74,9 @@ class TestModelIO(unittest.TestCase):
 
     def test_write_model(self):
         data_path = str(pathlib.Path(__file__).parent.joinpath("data"))
-        out_dir = str(pathlib.Path(__file__).parent.joinpath("data").joinpath("temp"))
+        out_dir = str(
+            pathlib.Path(__file__).parent.joinpath("data").joinpath("temp")
+        )
         try:
             os.mkdir(out_dir)
             model = imatpy.model_utils.read_model(
@@ -91,11 +97,15 @@ class TestModelIO(unittest.TestCase):
             self.assertTrue(
                 os.path.exists(os.path.join(out_dir, "textbook_model.json"))
             )
-            self.assertTrue(os.path.exists(os.path.join(out_dir, "textbook_model.xml")))
+            self.assertTrue(
+                os.path.exists(os.path.join(out_dir, "textbook_model.xml"))
+            )
             self.assertTrue(
                 os.path.exists(os.path.join(out_dir, "textbook_model.yaml"))
             )
-            self.assertTrue(os.path.exists(os.path.join(out_dir, "textbook_model.mat")))
+            self.assertTrue(
+                os.path.exists(os.path.join(out_dir, "textbook_model.mat"))
+            )
             model_json = imatpy.model_utils.read_model(
                 os.path.join(out_dir, "textbook_model.json")
             )
@@ -122,11 +132,15 @@ class TestModelIO(unittest.TestCase):
                 self.assertTrue(gene in model_yaml.genes)
         finally:
             if os.path.exists(out_dir):
-                if os.path.exists(os.path.join(out_dir, "textbook_model.json")):
+                if os.path.exists(
+                    os.path.join(out_dir, "textbook_model.json")
+                ):
                     os.remove(os.path.join(out_dir, "textbook_model.json"))
                 if os.path.exists(os.path.join(out_dir, "textbook_model.xml")):
                     os.remove(os.path.join(out_dir, "textbook_model.xml"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.yaml")):
+                if os.path.exists(
+                    os.path.join(out_dir, "textbook_model.yaml")
+                ):
                     os.remove(os.path.join(out_dir, "textbook_model.yaml"))
                 if os.path.exists(os.path.join(out_dir, "textbook_model.mat")):
                     os.remove(os.path.join(out_dir, "textbook_model.mat"))
@@ -233,7 +247,9 @@ class TestModelEquality(unittest.TestCase):
         self.assertTrue(imatpy.model_utils.model_eq(model1, model2))
         var1 = model1.solver.variables["r_A_B_D_E"]
         var2 = model1.solver.variables["r_C_E_F"]
-        test_const = model1.solver.interface.Constraint(var1 + var2, lb=-5, ub=5)
+        test_const = model1.solver.interface.Constraint(
+            var1 + var2, lb=-5, ub=5
+        )
         model1.solver.add(test_const)
         self.assertFalse(imatpy.model_utils.model_eq(model1, model2))
         self.assertFalse(imatpy.model_utils.model_eq(model2, model1))

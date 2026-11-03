@@ -46,11 +46,17 @@ class TestAddSingleConstraints(unittest.TestCase):
         # Check that the binary variable was added
         self.assertTrue("y_pos_r_C_H" in test_model.solver.variables)
         # Check the type of the added variable
-        self.assertEqual(test_model.solver.variables["y_pos_r_C_H"].type, "binary")
+        self.assertEqual(
+            test_model.solver.variables["y_pos_r_C_H"].type, "binary"
+        )
         # Check that the forward constraint was added
-        self.assertTrue("forward_constraint_r_C_H" in test_model.solver.constraints)
+        self.assertTrue(
+            "forward_constraint_r_C_H" in test_model.solver.constraints
+        )
         # Check that the reverse constraint was added
-        self.assertTrue("reverse_constraint_r_C_H" in test_model.solver.constraints)
+        self.assertTrue(
+            "reverse_constraint_r_C_H" in test_model.solver.constraints
+        )
         # TODO: Read expression into sympy to check that it behaves
         # equivalently, instead of checking the bounds
         # For above, see
@@ -66,9 +72,13 @@ class TestAddSingleConstraints(unittest.TestCase):
         # Check that the negative binary variable was added
         self.assertTrue("y_neg_r_C_H" in test_model.solver.variables)
         # Check that the forward constraint was added
-        self.assertTrue("forward_constraint_r_C_H" in test_model.solver.constraints)
+        self.assertTrue(
+            "forward_constraint_r_C_H" in test_model.solver.constraints
+        )
         # Check that the reverse constraint was added
-        self.assertTrue("reverse_constraint_r_C_H" in test_model.solver.constraints)
+        self.assertTrue(
+            "reverse_constraint_r_C_H" in test_model.solver.constraints
+        )
         # TODO: Add checks for the behavior of the constraints
 
 
@@ -159,7 +169,9 @@ class TestAddImatObjective(unittest.TestCase):
         copy_model = test_model.copy()
 
         # add imat objective
-        imatpy.imat.add_imat_objective_(model=test_model, rxn_weights=self.rxn_weights)
+        imatpy.imat.add_imat_objective_(
+            model=test_model, rxn_weights=self.rxn_weights
+        )
         # Check that the model was modified in place
         self.assertFalse(model_eq(test_model, copy_model))
         # Check that the objective was changed
@@ -245,7 +257,9 @@ class TestImat(unittest.TestCase):
         # Check that r_C_H is inactive
         self.assertTrue(bin_sol_inactive["r_C_H"])
 
-    @skipIf(importlib.util.find_spec("cplex") is None, "cplex is not installed")
+    @skipIf(
+        importlib.util.find_spec("cplex") is None, "cplex is not installed"
+    )
     def test_imat_cplex(self):
         test_model = self.model.copy()
         test_model.solver = "cplex"
@@ -260,7 +274,9 @@ class TestImat(unittest.TestCase):
         test_model.solver = "gurobi"
         self.imat_helper(test_model)
 
-    @skipIf(importlib.util.find_spec("swiglpk") is None, "glpk is not installed")
+    @skipIf(
+        importlib.util.find_spec("swiglpk") is None, "glpk is not installed"
+    )
     def test_imat_glpk(self):
         test_model = self.model.copy()
         test_model.solver = "glpk"

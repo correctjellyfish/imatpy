@@ -105,7 +105,8 @@ def flux_to_binary(
         ).astype(int)
     elif which_reactions == "inactive":
         return (
-            (fluxes <= threshold + tolerance) & (fluxes >= -threshold - tolerance)
+            (fluxes <= threshold + tolerance)
+            & (fluxes >= -threshold - tolerance)
         ).astype(int)
     else:
         raise ValueError(
@@ -286,7 +287,9 @@ def _imat_pos_weight_(model: cobra.Model, rxn: str, epsilon: float) -> None:
     lb = reaction.lower_bound
     ub = reaction.upper_bound
     reaction_flux = reaction.forward_variable - reaction.reverse_variable
-    y_pos = model.solver.interface.Variable(f"y_pos_{reaction.id}", type="binary")
+    y_pos = model.solver.interface.Variable(
+        f"y_pos_{reaction.id}", type="binary"
+    )
     model.solver.add(y_pos)
     forward_constraint = model.solver.interface.Constraint(
         reaction_flux + y_pos * (lb - epsilon),
@@ -294,7 +297,9 @@ def _imat_pos_weight_(model: cobra.Model, rxn: str, epsilon: float) -> None:
         name=f"forward_constraint_{reaction.id}",
     )
     model.solver.add(forward_constraint)
-    y_neg = model.solver.interface.Variable(f"y_neg_{reaction.id}", type="binary")
+    y_neg = model.solver.interface.Variable(
+        f"y_neg_{reaction.id}", type="binary"
+    )
     model.solver.add(y_neg)
     reverse_constraint = model.solver.interface.Constraint(
         reaction_flux + y_neg * (ub + epsilon),
@@ -321,7 +326,9 @@ def _imat_neg_weight_(model: cobra.Model, rxn: str, threshold: float) -> None:
     lb = reaction.lower_bound
     ub = reaction.upper_bound
     reaction_flux = reaction.forward_variable - reaction.reverse_variable
-    y_pos = model.solver.interface.Variable(f"y_pos_{reaction.id}", type="binary")
+    y_pos = model.solver.interface.Variable(
+        f"y_pos_{reaction.id}", type="binary"
+    )
     model.solver.add(y_pos)
     forward_constraint = model.solver.interface.Constraint(
         reaction_flux - ub * (1 - y_pos) - threshold * y_pos,

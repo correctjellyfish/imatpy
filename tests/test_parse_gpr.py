@@ -27,21 +27,47 @@ class TestStrToList(unittest.TestCase):
         self.assertEqual(str_to_list("(Rv0031)"), ["(", "Rv0031", ")"])
         self.assertEqual(str_to_list("(Rv0031"), ["(", "Rv0031"])
         self.assertEqual(str_to_list("Rv0031)"), ["Rv0031", ")"])
-        self.assertEqual(str_to_list("(Rv0031)AND"), ["(", "Rv0031", ")", "AND"])
+        self.assertEqual(
+            str_to_list("(Rv0031)AND"), ["(", "Rv0031", ")", "AND"]
+        )
 
     def test_operator_replacements(self):
-        self.assertEqual(str_to_list("Rv0031 and Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 anD Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 And Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 or Rv0098"), ["Rv0031", "OR", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 | Rv0098"), ["Rv0031", "OR", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 || Rv0098"), ["Rv0031", "OR", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031|Rv0098"), ["Rv0031", "OR", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031||Rv0098"), ["Rv0031", "OR", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 & Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031 && Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031&Rv0098"), ["Rv0031", "AND", "Rv0098"])
-        self.assertEqual(str_to_list("Rv0031&&Rv0098"), ["Rv0031", "AND", "Rv0098"])
+        self.assertEqual(
+            str_to_list("Rv0031 and Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 anD Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 And Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 or Rv0098"), ["Rv0031", "OR", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 | Rv0098"), ["Rv0031", "OR", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 || Rv0098"), ["Rv0031", "OR", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031|Rv0098"), ["Rv0031", "OR", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031||Rv0098"), ["Rv0031", "OR", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 & Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031 && Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031&Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
+        self.assertEqual(
+            str_to_list("Rv0031&&Rv0098"), ["Rv0031", "AND", "Rv0098"]
+        )
 
     def test_replacement_dict(self):
         self.assertEqual(
@@ -52,7 +78,9 @@ class TestStrToList(unittest.TestCase):
             str_to_list("Rv0031 n Rv0098", {"n": "NOT", "Rv": "rv"}),
             ["rv0031", "NOT", "rv0098"],
         )
-        self.assertEqual(str_to_list("~Rv0031", {"~": "NOT "}), ["NOT", "Rv0031"])
+        self.assertEqual(
+            str_to_list("~Rv0031", {"~": "NOT "}), ["NOT", "Rv0031"]
+        )
 
 
 class TestToPostfix(unittest.TestCase):
@@ -152,7 +180,9 @@ class TestGeneToRxnWeights(unittest.TestCase):
         )
 
     def test_simple_model(self):
-        rxn_weights = gene_to_rxn_weights(self.test_model, self.test_model_weights)
+        rxn_weights = gene_to_rxn_weights(
+            self.test_model, self.test_model_weights
+        )
         self.assertTrue(rxn_weights.__eq__(self.test_model_rxn_weights).all())
 
     def test_larger_model(self):

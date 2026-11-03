@@ -81,7 +81,9 @@ class TestModelCreation(unittest.TestCase):
         # Check that the imat constraint was added
         self.assertTrue("imat_obj_constraint" in imat_model.solver.constraints)
         # Check that the objective is the same as before
-        self.assertTrue(_check_objective_eq(test_model.objective, imat_model.objective))
+        self.assertTrue(
+            _check_objective_eq(test_model.objective, imat_model.objective)
+        )
         # Check that the test_model hasn't been modified
         self.assertTrue(model_eq(test_model, self.model))
         # Check that optimization respected imat constraint
@@ -112,8 +114,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -135,8 +141,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -162,8 +172,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -185,8 +199,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -231,7 +249,9 @@ class TestHelperFunctions(unittest.TestCase):
             },
             index=["A", "B", "C", "D", "E", "F"],
         )
-        actual_results = test_df.apply(_milp_eval, axis=1).replace({np.nan: -1})
+        actual_results = test_df.apply(_milp_eval, axis=1).replace(
+            {np.nan: -1}
+        )
         expected_results = pd.Series(
             [-1, 2, -1, 0, 1, 2], index=["A", "B", "C", "D", "E", "F"]
         )
