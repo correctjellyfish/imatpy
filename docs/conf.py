@@ -27,8 +27,10 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
+    "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
     "sphinx_exec_code",
+    "numpydoc",
 ]
 
 templates_path = ["_templates"]
@@ -39,7 +41,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
+html_static_path = []
 
 # -- Change default settings -------------------------------------------------
 autodoc_default_options = {
