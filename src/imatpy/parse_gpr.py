@@ -11,7 +11,7 @@ import pandas as pd
 def gene_to_rxn_weights(
     model: cobra.Model,
     gene_weights: pd.Series,
-    fn_dict: dict = None,
+    fn_dict: dict | None = None,
     fill_val: Any = 0,
 ) -> pd.Series:
     """
@@ -37,7 +37,9 @@ def gene_to_rxn_weights(
     return rxn_weights
 
 
-def eval_gpr(gpr: str, gene_weights: pd.Series, fn_dict: dict = None) -> Any | None:
+def eval_gpr(
+    gpr: str, gene_weights: pd.Series, fn_dict: dict | None = None
+) -> Any | None:
     """
     Evaluate a single GPR string using the provided gene weights and
     function dictionary.
