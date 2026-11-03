@@ -1,6 +1,7 @@
 # Core Library modules
 import os.path
 import pathlib
+import tempfile
 import unittest
 
 # External Library Imports
@@ -11,7 +12,7 @@ from cobra.core.configuration import Configuration
 import imatpy.model_utils
 
 # Setup file paths
-BASE_PATH = pathlib.Path(__file__).absolute().parent.parent
+BASE_PATH = pathlib.Path(__file__).absolute().parent
 DATA_PATH = BASE_PATH / "data"
 
 
@@ -50,20 +51,17 @@ class TestModelIO(unittest.TestCase):
         Configuration().solver = "glpk"  # Use GLPK solver for testing
 
     def test_read_model(self):
-        data_path = str(
-            pathlib.Path(__file__).absolute().parent.joinpath("data")
-        )
         model_json = imatpy.model_utils.read_model(
-            os.path.join(data_path, "textbook_model.json")
+            DATA_PATH / "textbook_model.json"
         )
         model_xml = imatpy.model_utils.read_model(
-            os.path.join(data_path, "textbook_model.xml")
+            DATA_PATH / "textbook_model.xml"
         )
         model_mat = imatpy.model_utils.read_model(
-            os.path.join(data_path, "textbook_model.mat")
+            DATA_PATH / "textbook_model.mat"
         )
         model_yaml = imatpy.model_utils.read_model(
-            os.path.join(data_path, "textbook_model.yaml")
+            DATA_PATH / "textbook_model.yaml"
         )
         for rxn in model_json.reactions:
             self.assertTrue(rxn in model_xml.reactions)
@@ -79,50 +77,39 @@ class TestModelIO(unittest.TestCase):
             self.assertTrue(gene in model_yaml.genes)
 
     def test_write_model(self):
-        data_path = str(pathlib.Path(__file__).parent.joinpath("data"))
-        out_dir = str(
-            pathlib.Path(__file__).parent.joinpath("data").joinpath("temp")
-        )
+        tmp_dir = tempfile.TemporaryDirectory()
+        out_dir = pathlib.Path(tmp_dir.name)
         try:
-            os.mkdir(out_dir)
             model = imatpy.model_utils.read_model(
-                os.path.join(data_path, "textbook_model.json")
+                DATA_PATH / "textbook_model.json"
             )
             imatpy.model_utils.write_model(
-                model, os.path.join(out_dir, "textbook_model.json")
+                model, out_dir / "textbook_model.json"
             )
             imatpy.model_utils.write_model(
-                model, os.path.join(out_dir, "textbook_model.xml")
+                model, out_dir / "textbook_model.xml"
             )
             imatpy.model_utils.write_model(
-                model, os.path.join(out_dir, "textbook_model.yaml")
+                model, out_dir / "textbook_model.yaml"
             )
             imatpy.model_utils.write_model(
-                model, os.path.join(out_dir, "textbook_model.mat")
+                model, out_dir / "textbook_model.mat"
             )
-            self.assertTrue(
-                os.path.exists(os.path.join(out_dir, "textbook_model.json"))
-            )
-            self.assertTrue(
-                os.path.exists(os.path.join(out_dir, "textbook_model.xml"))
-            )
-            self.assertTrue(
-                os.path.exists(os.path.join(out_dir, "textbook_model.yaml"))
-            )
-            self.assertTrue(
-                os.path.exists(os.path.join(out_dir, "textbook_model.mat"))
-            )
+            self.assertTrue(os.path.exists(out_dir / "textbook_model.json"))
+            self.assertTrue(os.path.exists(out_dir / "textbook_model.xml"))
+            self.assertTrue(os.path.exists(out_dir / "textbook_model.yaml"))
+            self.assertTrue(os.path.exists(out_dir / "textbook_model.mat"))
             model_json = imatpy.model_utils.read_model(
-                os.path.join(out_dir, "textbook_model.json")
+                out_dir / "textbook_model.json"
             )
             model_mat = imatpy.model_utils.read_model(
-                os.path.join(out_dir, "textbook_model.mat")
+                out_dir / "textbook_model.mat"
             )
             model_xml = imatpy.model_utils.read_model(
-                os.path.join(out_dir, "textbook_model.xml")
+                out_dir / "textbook_model.xml"
             )
             model_yaml = imatpy.model_utils.read_model(
-                os.path.join(out_dir, "textbook_model.yaml")
+                out_dir / "textbook_model.yaml"
             )
             for rxn in model_json.reactions:
                 self.assertTrue(rxn in model_xml.reactions)
@@ -137,20 +124,7 @@ class TestModelIO(unittest.TestCase):
                 self.assertTrue(gene in model_mat.genes)
                 self.assertTrue(gene in model_yaml.genes)
         finally:
-            if os.path.exists(out_dir):
-                if os.path.exists(
-                    os.path.join(out_dir, "textbook_model.json")
-                ):
-                    os.remove(os.path.join(out_dir, "textbook_model.json"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.xml")):
-                    os.remove(os.path.join(out_dir, "textbook_model.xml"))
-                if os.path.exists(
-                    os.path.join(out_dir, "textbook_model.yaml")
-                ):
-                    os.remove(os.path.join(out_dir, "textbook_model.yaml"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.mat")):
-                    os.remove(os.path.join(out_dir, "textbook_model.mat"))
-                os.rmdir(out_dir)
+            tmp_dir.cleanup()
 
 
 class TestModelEquality(unittest.TestCase):
@@ -160,8 +134,8 @@ class TestModelEquality(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         Configuration().solver = "glpk"
-        cls.data_path = str(pathlib.Path(__file__).parent / "data")
-        cls.model_path = os.path.join(cls.data_path, "test_model.json")
+        cls.data_path = DATA_PATH
+        cls.model_path = DATA_PATH / "test_model.json"
         cls.model = imatpy.model_utils.read_model(cls.model_path)
 
     def test_identical_models(self):
@@ -268,6 +242,34 @@ class TestModelEquality(unittest.TestCase):
         model1.solver.constraints["E_c"].lb = -5
         self.assertFalse(imatpy.model_utils.model_eq(model1, model2))
         self.assertFalse(imatpy.model_utils.model_eq(model2, model1))
+
+
+class TestModelBoundsEquality(unittest.TestCase):
+    data_path = None
+    model_path = None
+
+    @classmethod
+    def setUpClass(cls):
+        Configuration().solver = "glpk"
+        cls.data_path = str(pathlib.Path(__file__).absolute().parent / "data")
+        cls.model_path = os.path.join(cls.data_path, "test_model.json")
+        cls.model = imatpy.model_utils.read_model(cls.model_path)
+
+    def test_bounds_equal(self):
+        # Copy the model to get two identical models
+        model1 = self.model.copy()
+        model2 = self.model.copy()
+        # Check that the bounds are all equal
+        self.assertTrue(imatpy.model_utils.model_bounds_eq(model1, model2))
+
+    def test_bound_unequal(self):
+        # Copy the model to get two identical models
+        model1 = self.model.copy()
+        model2 = self.model.copy()
+        # Change one of the bounds of model1
+        model1.reactions.get_by_id("r_A_B_D_E").bounds = (-10, 10)
+        # Ensure that the bounds are now different
+        self.assertFalse(imatpy.model_utils.model_bounds_eq(model1, model2))
 
 
 if __name__ == "__main__":

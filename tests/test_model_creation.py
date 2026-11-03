@@ -9,7 +9,10 @@ import pandas as pd
 from cobra.core.configuration import Configuration
 
 import imatpy.imat
-from imatpy.imat import compute_imat_objective
+from imatpy.imat import (
+    _get_rxn_imat_binary_variable_name,
+    compute_imat_objective,
+)
 from imatpy.model_creation import (
     _active_bounds,
     _inactive_bounds,
@@ -38,10 +41,6 @@ def setup(cls):
     cls.epsilon = 1
     cls.threshold = 1e-2
     cls.objective_tolerance = 5e-2
-
-
-class TestGenerateModel(unittest.TestCase):
-    pass
 
 
 class TestModelCreation(unittest.TestCase):
@@ -76,14 +75,46 @@ class TestModelCreation(unittest.TestCase):
             self.objective_tolerance,
         )
         # Check that the binary variables were added
-        self.assertTrue("y_pos_r_C_H" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_C_E_F" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_D_G" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" in imat_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" in imat_model.solver.variables)
-        self.assertTrue("y_neg_r_D_G" in imat_model.solver.variables)
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_C_H", expression_weight="low", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_C_E_F", expression_weight="low", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_D_G", expression_weight="high", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_D_G", expression_weight="high", which="negative"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_A_B_D_E", expression_weight="high", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_A_B_D_E", expression_weight="high", which="negative"
+            )
+            in imat_model.solver.variables
+        )
         # Check that the imat constraint was added
-        self.assertTrue("imat_obj_constraint" in imat_model.solver.constraints)
+        self.assertTrue(
+            "imat_objective_constraint" in imat_model.solver.constraints
+        )
         # Check that the objective is the same as before
         self.assertTrue(
             _check_objective_eq(test_model.objective, imat_model.objective)
@@ -98,9 +129,10 @@ class TestModelCreation(unittest.TestCase):
             epsilon=self.epsilon,
             threshold=self.threshold,
         )
+        assert self.objective_tolerance is not None
         self.assertTrue(
             np.abs(imat_objective - imat_sol.objective_value)
-            < self.objective_tolerance * imat_sol.objective_value  # ty: ignore[unsupported-operator]
+            < self.objective_tolerance * imat_sol.objective_value
         )
 
     def test_simple_bounds_model(self):
@@ -270,10 +302,10 @@ class TestHelperFunctions(unittest.TestCase):
             index=["A", "B", "C", "D", "E", "F"],
         )
         actual_results = test_df.apply(_milp_eval, axis=1).replace(
-            {np.nan: -1}
+            {np.nan: -2}
         )
         expected_results = pd.Series(
-            [-1, 2, -1, 0, 1, 2], index=["A", "B", "C", "D", "E", "F"]
+            [-2, -1, -2, 0, 1, -1], index=["A", "B", "C", "D", "E", "F"]
         )
         self.assertTrue(np.all(actual_results == expected_results))
 

@@ -6,7 +6,9 @@ Module for model utilities
 from __future__ import annotations
 
 import cobra
+import numpy as np
 import optlang.container
+import pandas as pd
 from sympy import parse_expr
 
 
@@ -140,12 +142,11 @@ def _parse_file_type(file_type):
 # endregion: Model IO
 
 
-# region Model Comparison
+# region: Model Comparison
 def model_eq(
     model1: cobra.Model, model2: cobra.Model, verbose: bool = False
 ) -> bool:
-    """
-    Check if two cobra models are equal.
+    """Check if two cobra models are equal.
 
     Parameters
     ----------
@@ -218,11 +219,61 @@ def model_eq(
     return True
 
 
+def model_bounds_eq(
+    model1: cobra.Model, model2: cobra.Model, **kwargs
+) -> bool:
+    """Check if the bounds of two models are equal
+
+    Parameters
+    ----------
+    model1 : cobra.Model
+        First model to compare
+    model2 : cobra.Model
+        Second model to compare
+    **kwargs : dict[str, Any]
+        Additional keyword arguments passed to numpy isclose function to
+        check equality
+
+    Returns
+    -------
+    bool
+        True if the model bounds are equal, false otherwise
+    """
+    # First check that the models have the same reactions
+    model1_rxns = set(model1.reactions.list_attr("id"))
+    model2_rxns = set(model2.reactions.list_attr("id"))
+    if model1_rxns != model2_rxns:
+        raise ValueError(
+            "To compare reaction bounds, models must have the same reactions, but model1 and model2 have different reactions"
+        )
+    # Get the upper and lower bounds from the models
+    model1_lb = pd.Series(
+        model1.reactions.list_attr("lower_bound"),
+        index=model1.reactions.list_attr("id"),
+    )
+    model1_ub = pd.Series(
+        model1.reactions.list_attr("upper_bound"),
+        index=model1.reactions.list_attr("id"),
+    )
+    model2_lb = pd.Series(
+        model2.reactions.list_attr("lower_bound"),
+        index=model2.reactions.list_attr("id"),
+    )
+    model2_ub = pd.Series(
+        model2.reactions.list_attr("upper_bound"),
+        index=model2.reactions.list_attr("id"),
+    )
+    # Check if the bounds are the same
+    return bool(
+        np.isclose(model1_lb, model2_lb, **kwargs).all()
+        and np.isclose(model1_ub, model2_ub, **kwargs).all()
+    )
+
+
 def _check_dictlist_subset(
     dictlist1: cobra.DictList, dictlist2: cobra.DictList
 ) -> bool:
-    """
-    Check if dictlist1 is a subset of dictlist2.
+    """Check if dictlist1 is a subset of dictlist2.
 
     Parameters
     ----------
@@ -253,16 +304,11 @@ def _check_dictlist_eq(
         The first dictlist to compare.
     dictlist2 : cobra.DictList
         The second dictlist to compare.
-    dictlist1: cobra.DictList :
-
-    dictlist2: cobra.DictList :
-
 
     Returns
     -------
     bool
         True if the dictlists are equal, False otherwise.
-
     """
     if not _check_dictlist_subset(dictlist1, dictlist2):
         return False
@@ -280,16 +326,11 @@ def _check_optlang_container_subset(
         The first container to compare.
     cont2 : optlang.container.Container
         The second container to compare.
-    cont1: optlang.container.Container :
-
-    cont2: optlang.container.Container :
-
 
     Returns
     -------
     bool
         True if cont1 is a subset of cont2, False otherwise.
-
     """
     for val in cont1:
         if val.name not in cont2:
@@ -308,16 +349,11 @@ def _check_optlang_container_eq(
         The first container to compare.
     cont2 : optlang.container.Container
         The second container to compare.
-    cont1: optlang.container.Container :
-
-    cont2: optlang.container.Container :
-
 
     Returns
     -------
     bool
         True if the containers are equal, False otherwise.
-
     """
     if not _check_optlang_container_subset(cont1, cont2):
         return False
@@ -337,19 +373,14 @@ def _check_reaction_eq(
         The second reaction to compare.
     verbose : bool
         Whether to print where the reactions differ
-        (default: False).
-    rxn1: cobra.Reaction :
 
-    rxn2: cobra.Reaction :
 
-    verbose: bool :
-         (Default value = False)
+    (default: False).
 
     Returns
     -------
     bool
         True if the reactions are equal, False otherwise.
-
     """
     if rxn1.lower_bound != rxn2.lower_bound:
         if verbose:
@@ -388,17 +419,14 @@ def _check_expression_eq(expr1, expr2, verbose=False) -> bool:
     expr2 : sympy.Expr or optlang.Expression
         The second expression to compare.
     verbose : bool
-        Whether to print where the expressions differ
-        (default: False).
+        Whether to print where the expressions differ (default: False).
 
     Returns
     -------
     bool
         True if the expressions are equal, False otherwise.
-
     """
     if parse_expr(str(expr1)) - parse_expr(str(expr2)) != 0:
-        print("ENTERED IF STATEMENT")
         if verbose:
             print(f"Expressions {expr1} and {expr2} are not equal")
         return False
@@ -415,14 +443,12 @@ def _check_objective_eq(objective1, objective2, verbose=False) -> bool:
     objective2 : cobra.core.objective.Objective
         The second objective to compare.
     verbose : bool
-        Whether to print where the objectives differ
-        (default: False).
+        Whether to print where the objectives differ (default: False).
 
     Returns
     -------
     bool
         True if the objectives are equal, False otherwise.
-
     """
     expr1 = objective1.expression
     expr2 = objective2.expression
@@ -438,9 +464,6 @@ def _check_objective_eq(objective1, objective2, verbose=False) -> bool:
 
 
 def _check_variable_eq(var1, var2, verbose: bool = False) -> bool:
-    """
-    Check whether two variables in a model are equal
-    """
     if var1.lb != var2.lb:
         if verbose:
             print(f"Variable {var1.name} has different lower bounds")
@@ -459,9 +482,6 @@ def _check_variable_eq(var1, var2, verbose: bool = False) -> bool:
 def _check_constraint_eq(
     constraint1, constraint2, verbose: bool = False
 ) -> bool:
-    """
-    Check whether two constraints in a model are equal
-    """
     if constraint1.lb != constraint2.lb:
         if verbose:
             print(f"Constraint {constraint1.name} has different lower bounds")

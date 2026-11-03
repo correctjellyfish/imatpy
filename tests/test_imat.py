@@ -18,7 +18,7 @@ from imatpy.model_utils import _check_expression_eq, model_eq, read_model
 
 
 def setup(cls):
-    Configuration().solver = "glpk"  # Use GLPK solver for testing
+    Configuration().solver = "glpk"  # Use hybrid solver for testing
     cls.data_path = pathlib.Path(__file__).parent.absolute() / "data"
     cls.model = read_model(cls.data_path / "test_model.xml")
     cls.rxn_weights = pd.read_csv(
@@ -49,18 +49,34 @@ class TestAddSingleConstraints(unittest.TestCase):
             model=test_model, rxn="r_C_H", threshold=self.threshold
         )  # Add constraint
         # Check that the binary variable was added
-        self.assertTrue("y_pos_r_C_H" in test_model.solver.variables)
+        self.assertTrue(
+            imatpy.imat._get_rxn_imat_binary_variable_name(
+                "r_C_H", expression_weight="low", which="positive"
+            )
+            in test_model.solver.variables
+        )
         # Check the type of the added variable
         self.assertEqual(
-            test_model.solver.variables["y_pos_r_C_H"].type, "binary"
+            test_model.solver.variables[
+                imatpy.imat._get_rxn_imat_binary_variable_name(
+                    "r_C_H", expression_weight="low", which="positive"
+                )
+            ].type,
+            "binary",
         )
         # Check that the forward constraint was added
         self.assertTrue(
-            "forward_constraint_r_C_H" in test_model.solver.constraints
+            imatpy.imat._get_rxn_imat_constraint_name(
+                "r_C_H", expression_weight="low", which="forward"
+            )
+            in test_model.solver.constraints
         )
         # Check that the reverse constraint was added
         self.assertTrue(
-            "reverse_constraint_r_C_H" in test_model.solver.constraints
+            imatpy.imat._get_rxn_imat_constraint_name(
+                "r_C_H", expression_weight="low", which="reverse"
+            )
+            in test_model.solver.constraints
         )
         # TODO: Read expression into sympy to check that it behaves
         # equivalently, instead of checking the bounds
@@ -75,16 +91,32 @@ class TestAddSingleConstraints(unittest.TestCase):
             model=test_model, rxn="r_C_H", epsilon=self.epsilon
         )
         # CHeck that the positive binary variable was added
-        self.assertTrue("y_pos_r_C_H" in test_model.solver.variables)
+        self.assertTrue(
+            imatpy.imat._get_rxn_imat_binary_variable_name(
+                "r_C_H", expression_weight="high", which="positive"
+            )
+            in test_model.solver.variables
+        )
         # Check that the negative binary variable was added
-        self.assertTrue("y_neg_r_C_H" in test_model.solver.variables)
+        self.assertTrue(
+            imatpy.imat._get_rxn_imat_binary_variable_name(
+                "r_C_H", expression_weight="high", which="negative"
+            )
+            in test_model.solver.variables
+        )
         # Check that the forward constraint was added
         self.assertTrue(
-            "forward_constraint_r_C_H" in test_model.solver.constraints
+            imatpy.imat._get_rxn_imat_constraint_name(
+                "r_C_H", expression_weight="high", which="forward"
+            )
+            in test_model.solver.constraints
         )
         # Check that the reverse constraint was added
         self.assertTrue(
-            "reverse_constraint_r_C_H" in test_model.solver.constraints
+            imatpy.imat._get_rxn_imat_constraint_name(
+                "r_C_H", expression_weight="high", which="reverse"
+            )
+            in test_model.solver.constraints
         )
         # TODO: Add checks for the behavior of the constraints
 
@@ -308,6 +340,17 @@ class TestImat(unittest.TestCase):
         assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         test_model.solver = "gurobi"
+        self.imat_helper(test_model)
+
+    @skipIf(
+        importlib.util.find_spec("highspy") is None
+        and importlib.util.find_spec("osqp") is None,
+        "HiGHSpy or OSQP isn't installed, so hybrid solver can't be used",
+    )
+    def test_imat_hybrid(self):
+        assert self.model is not None
+        test_model = self.model.copy()
+        test_model.solver = "hybrid"
         self.imat_helper(test_model)
 
     @skipIf(
