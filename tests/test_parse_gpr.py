@@ -1,21 +1,23 @@
 # Standard Library Imports
-import random
 import os
 import pathlib
+import random
 import unittest
+
+import pandas as pd
 
 # External Imports
 from cobra.core.configuration import Configuration
-import pandas as pd
+
+from imatpy.model_utils import read_model
 
 # Local Imports
 from imatpy.parse_gpr import (
-    str_to_list,
-    to_postfix,
     eval_gpr,
     gene_to_rxn_weights,
+    str_to_list,
+    to_postfix,
 )
-from imatpy.model_utils import read_model
 
 
 class TestStrToList(unittest.TestCase):

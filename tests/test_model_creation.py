@@ -2,28 +2,28 @@
 import pathlib
 import unittest
 
-# External Imports
-from cobra.core.configuration import Configuration
 import numpy as np
 import pandas as pd
 
-import imatpy.imat
+# External Imports
+from cobra.core.configuration import Configuration
 
-# Local Imports
-from imatpy.model_utils import read_model
+import imatpy.imat
+from imatpy.imat import compute_imat_objective
 from imatpy.model_creation import (
+    _active_bounds,
+    _inactive_bounds,
+    _milp_eval,
+    _parse_method,
+    fva_model,
     imat_constraint_model,
+    milp_model,
     simple_bounds_model,
     subset_model,
-    fva_model,
-    milp_model,
-    _parse_method,
-    _inactive_bounds,
-    _active_bounds,
-    _milp_eval,
 )
-from imatpy.model_utils import _check_objective_eq, model_eq
-from imatpy.imat import compute_imat_objective
+
+# Local Imports
+from imatpy.model_utils import _check_objective_eq, model_eq, read_model
 
 
 def setup(cls):

@@ -5,13 +5,14 @@ import pathlib
 import unittest
 from unittest import skipIf
 
+import pandas as pd
+
 # External Imports
 from cobra.core.configuration import Configuration
-import pandas as pd
 
 # Local Imports
 import imatpy.imat
-from imatpy.model_utils import read_model, model_eq, _check_expression_eq
+from imatpy.model_utils import _check_expression_eq, model_eq, read_model
 
 
 def setup(cls):
