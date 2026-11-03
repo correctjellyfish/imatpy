@@ -5,15 +5,13 @@ model, and running iMAT
 
 # Standard Library Imports
 from __future__ import annotations
-import re
-from typing import Union
 
 # External Imports
 import cobra
-from cobra.core.configuration import Configuration
 import numpy as np
 import pandas as pd
 import sympy as sym
+from cobra.core.configuration import Configuration
 
 # Local Imports
 
@@ -24,32 +22,45 @@ DEFAULTS = {
     "tolerance": Configuration().tolerance,
 }
 
-BINARY_REGEX = re.compile(r"y_(pos|neg)_(.+)")
-
 
 # region: Main iMat Function
 def imat(
     model: cobra.Model,
-    rxn_weights: Union[pd.Series, dict],
+    rxn_weights: pd.Series | dict,
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
 ) -> cobra.Solution:
-    """
-    Function for performing iMAT analysis. Returns a cobra Solution object,
+    """Function for performing iMAT analysis. Returns a cobra Solution object,
     with objective value and fluxes.
 
-    :param model: A cobra.Model object to use for iMAT
-    :type model: cobra.Model
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to use for iMAT
+    rxn_weights : dict | pandas.Series
+        A dictionary or pandas series of reaction weights.
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :return: A cobra Solution object with the objective value and fluxes.
-    :rtype: cobra.Solution
+    model: cobra.Model :
+
+    rxn_weights: Union[pd.Series :
+
+    dict] :
+
+    epsilon: float :
+         (Default value = DEFAULTS["epsilon"])
+    threshold: float :
+         (Default value = DEFAULTS["threshold"])
+
+    Returns
+    -------
+    cobra.Solution
+        A cobra Solution object with the objective value and fluxes.
+
     """
     imat_model = add_imat_constraints(model, rxn_weights, epsilon, threshold)
     add_imat_objective_(imat_model, rxn_weights)
@@ -67,12 +78,14 @@ def flux_to_binary(
     threshold: float = DEFAULTS["threshold"],
     tolerance=DEFAULTS["tolerance"],
 ) -> pd.Series:
-    """
-    Convert a pandas series of fluxes to a pandas series of binary values.
+    """Convert a pandas series of fluxes to a pandas series of binary values.
 
-    :param fluxes: A pandas series of fluxes.
-    :type fluxes: pandas.Series
-    :param which_reactions: Which reactions should be the binary values?
+    Parameters
+    ----------
+    fluxes : pandas.Series
+        A pandas series of fluxes.
+    which_reactions : str
+        Which reactions should be the binary values?
         Options are "active", "inactive", "forward", "reverse", or their first
         letters. Default is "active". "active" will return 1 for reactions
         with absolute value of flux greater than epsilon, and 0 for reactions
@@ -82,17 +95,28 @@ def flux_to_binary(
         with flux greater than epsilon, and 0 for reactions with flux less than
         epsilon. "reverse" will return 1 for reactions with flux less than
         -epsilon, and 0 for reactions with flux greater than -epsilon.
-    :type which_reactions: str
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :param tolerance: The tolerance of the solver. Default from cobra is 1e-7.
-    :type tolerance: float
-    :return: A pandas series of binary values.
-    :rtype: pandas.Series
+    tolerance : float
+        The tolerance of the solver. Default from cobra is 1e-7.
+    fluxes: pd.Series :
+
+    which_reactions: str :
+         (Default value = "active")
+    epsilon: float :
+         (Default value = DEFAULTS["epsilon"])
+    threshold: float :
+         (Default value = DEFAULTS["threshold"])
+
+    Returns
+    -------
+    pandas.Series
+        A pandas series of binary values.
+
     """
     which_reactions = _parse_which_reactions(which_reactions)
     if which_reactions == "forward":
@@ -117,24 +141,31 @@ def flux_to_binary(
 
 def compute_imat_objective(
     fluxes: pd.Series,
-    rxn_weights,
+    rxn_weights: dict[str, float] | pd.Series[float],
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
-):
+) -> float:
     """
     Compute the iMAT objective value for a given set of fluxes.
 
-    :param fluxes: A pandas series of fluxes.
-    :type fluxes: pandas.Series
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    Parameters
+    ----------
+    fluxes : pandas.Series
+        A pandas series of fluxes.
+    rxn_weights : dict of str to float or pandas.Series of floats
+        A dictionary or pandas series of reaction weights.
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :return: The iMAT objective value.
+
+    Returns
+    -------
+    float
+        The iMAT objective value.
+
     """
     if isinstance(rxn_weights, dict):
         rxn_weights = pd.Series(rxn_weights)
@@ -156,56 +187,70 @@ def compute_imat_objective(
 # region: iMAT Helper Functions
 def add_imat_constraints_(
     model: cobra.Model,
-    rxn_weights: Union[pd.Series, dict],
+    rxn_weights: pd.Series[float] | dict[str, float],
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
 ) -> cobra.Model:
-    """
-    Add the IMAT constraints to the model (updates the model in place).
+    """Add the IMAT constraints to the model (updates the model in place).
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn_weights : dict | pandas.Series
+        A dictionary or pandas series of reaction weights.
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :return: The updated model.
-    :rtype: cobra.Model
+
+    Returns
+    -------
+    cobra.Model
+        The updated model.
+
     """
     for rxn, weight in rxn_weights.items():
         # Don't add any restrictions for 0 weight reactions
         if np.isclose(weight, 0):
             continue
         if weight > 0:  # Add highly expressed constraint
-            _imat_pos_weight_(model=model, rxn=rxn, epsilon=epsilon)
+            _imat_pos_weight_(model=model, rxn=rxn, epsilon=epsilon)  # ty: ignore[invalid-argument-type]
         elif weight < 0:  # Add lowly expressed constraint
-            _imat_neg_weight_(model=model, rxn=rxn, threshold=threshold)
+            _imat_neg_weight_(model=model, rxn=rxn, threshold=threshold)  # ty: ignore[invalid-argument-type]
     return model
 
 
 def add_imat_constraints(
     model, rxn_weights, epsilon: float = 1e-3, threshold: float = 1e-4
 ) -> cobra.Model:
-    """
-    Add the IMAT constraints to the model (returns new model, doesn't
+    """Add the IMAT constraints to the model (returns new model, doesn't
     update model in place).
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn_weights : dict | pandas.Series
+        A dictionary or pandas series of reaction weights.
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :return: The updated model.
-    :rtype: cobra.Model
+    epsilon: float :
+         (Default value = 1e-3)
+    threshold: float :
+         (Default value = 1e-4)
+
+    Returns
+    -------
+    cobra.Model
+        The updated model.
+
     """
     imat_model = model.copy()
     add_imat_constraints_(imat_model, rxn_weights, epsilon, threshold)
@@ -213,17 +258,17 @@ def add_imat_constraints(
 
 
 def add_imat_objective_(
-    model: cobra.Model, rxn_weights: Union[pd.Series, dict]
+    model: cobra.Model, rxn_weights: pd.Series[float] | dict[str, float]
 ) -> None:
-    """
-    Add the IMAT objective to the model (updates the model in place).
+    """Add the IMAT objective to the model (updates the model in place).
     Model must already have iMAT constraints added.
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :return: None
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn_weights : dict | pandas.Series
+        A dictionary or pandas series of reaction weights.
     """
     if isinstance(rxn_weights, dict):
         rxn_weights = pd.Series(rxn_weights)
@@ -248,20 +293,24 @@ def add_imat_objective_(
 
 
 def add_imat_objective(
-    model: cobra.Model, rxn_weights: Union[pd.Series, dict]
+    model: cobra.Model, rxn_weights: pd.Series[float] | dict[str, float]
 ) -> cobra.Model:
-    """
-    Add the IMAT objective to the model (doesn't change passed model).
+    """Add the IMAT objective to the model (doesn't change passed model).
     Model must already have iMAT constraints added.
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn_weights: A dictionary or pandas series of reaction weights.
-    :type rxn_weights: dict | pandas.Series
-    :return: None
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn_weights : dict | pandas.Series
+        A dictionary or pandas series of reaction weights.
+
+    Returns
+    -------
+    update_model : cobra.Model
+        New model with the iMAT objective added
     """
     imat_model = model.copy()
-    _enforce_binary(imat_model)
     add_imat_objective_(imat_model, rxn_weights)
     return imat_model
 
@@ -271,21 +320,27 @@ def add_imat_objective(
 
 # region: Internal Methods
 def _imat_pos_weight_(model: cobra.Model, rxn: str, epsilon: float) -> None:
-    """
-    Internal method for adding positive weight constraints to the model.
+    """Internal method for adding positive weight constraints to the model.
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn: The reaction ID to add the constraint to.
-    :type rxn: str
-    :param epsilon: The epsilon value to use for iMAT (default: 1e-3).
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn : str
+        The reaction ID to add the constraint to.
+    epsilon : float
+        The epsilon value to use for iMAT (default: 1e-3).
         Represents the minimum flux for a reaction to be considered on.
-    :type epsilon: float
-    :return: None
     """
     reaction = model.reactions.get_by_id(rxn)
     lb = reaction.lower_bound
     ub = reaction.upper_bound
+    assert reaction.forward_variable is not None, (
+        f"Reaction {reaction.id} doesn't have a forward variable"
+    )
+    assert reaction.reverse_variable is not None, (
+        f"Reaction {reaction.id} doesn't have a forward variable"
+    )
     reaction_flux = reaction.forward_variable - reaction.reverse_variable
     y_pos = model.solver.interface.Variable(
         f"y_pos_{reaction.id}", type="binary"
@@ -310,21 +365,27 @@ def _imat_pos_weight_(model: cobra.Model, rxn: str, epsilon: float) -> None:
 
 
 def _imat_neg_weight_(model: cobra.Model, rxn: str, threshold: float) -> None:
-    """
-    Internal method for adding negative weight constraints to the model.
+    """Internal method for adding negative weight constraints to the model.
 
-    :param model: A cobra.Model object to update with iMAT constraints.
-    :type model: cobra.Model
-    :param rxn: The reaction ID to add the constraint to.
-    :type rxn: str
-    :param threshold: The threshold value to use for iMAT (default: 1e-4).
+    Parameters
+    ----------
+    model : cobra.Model
+        A cobra.Model object to update with iMAT constraints.
+    rxn : str
+        The reaction ID to add the constraint to.
+    threshold : float
+        The threshold value to use for iMAT (default: 1e-4).
         Represents the maximum flux for a reaction to be considered off.
-    :type threshold: float
-    :return: None
     """
     reaction = model.reactions.get_by_id(rxn)
-    lb = reaction.lower_bound
-    ub = reaction.upper_bound
+    lb: float = reaction.lower_bound
+    ub: float = reaction.upper_bound
+    assert reaction.forward_variable is not None, (
+        f"Reaction {reaction.id} doesn't have a forward variable"
+    )
+    assert reaction.reverse_variable is not None, (
+        f"Reaction {reaction.id} doesn't have a forward variable"
+    )
     reaction_flux = reaction.forward_variable - reaction.reverse_variable
     y_pos = model.solver.interface.Variable(
         f"y_pos_{reaction.id}", type="binary"
@@ -342,15 +403,6 @@ def _imat_neg_weight_(model: cobra.Model, rxn: str, threshold: float) -> None:
         name=f"reverse_constraint_{reaction.id}",
     )
     model.solver.add(reverse_constraint)
-
-
-def _enforce_binary(model: cobra.Model):
-    """
-    Internal method for enforcing binary type for added binary variables
-    """
-    for var in model.solver.variables:
-        if BINARY_REGEX.search(var.name):
-            model.solver.variables[var.name].type = "binary"
 
 
 def _parse_which_reactions(which_reactions: str) -> str:
