@@ -26,7 +26,7 @@ gurobipy = ["gurobipy>=11.0.0"]
 cplex = ["cplex>=22.1.1.1"]
 
 [dependency-groups]
-dev = ["pytest>=7.4.2,<8", "ruff>=0.12.0"]
+dev = ["pytest>=7.4.2,<8", "ruff>=0.15.0", "tox>=4.30.3", "tox-uv>=1.28.1"]
 docs = [
   "sphinx>=7.2.6,<8",
   "sphinx-exec-code>=0.10,<0.11",

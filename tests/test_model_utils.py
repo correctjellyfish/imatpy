@@ -1,6 +1,7 @@
 # Core Library modules
 import os.path
 import pathlib
+import tempfile
 import unittest
 
 # External Library Imports
@@ -9,6 +10,10 @@ from cobra.core.configuration import Configuration
 
 # Local imports
 import imatpy.model_utils
+
+# Setup file paths
+BASE_PATH = pathlib.Path(__file__).absolute().parent
+DATA_PATH = BASE_PATH / "data"
 
 
 class TestParseFileType(unittest.TestCase):
@@ -69,12 +74,11 @@ class TestModelIO(unittest.TestCase):
             self.assertTrue(gene in model_yaml.genes)
 
     def test_write_model(self):
-        data_path = str(pathlib.Path(__file__).parent.joinpath("data"))
-        out_dir = str(pathlib.Path(__file__).parent.joinpath("data").joinpath("temp"))
+        tmp_dir = tempfile.TemporaryDirectory()
+        out_dir = pathlib.Path(tmp_dir.name)
         try:
-            os.mkdir(out_dir)
             model = imatpy.model_utils.read_model(
-                os.path.join(data_path, "textbook_model.json")
+                os.path.join(DATA_PATH, "textbook_model.json")
             )
             imatpy.model_utils.write_model(
                 model, os.path.join(out_dir, "textbook_model.json")
@@ -121,16 +125,7 @@ class TestModelIO(unittest.TestCase):
                 self.assertTrue(gene in model_mat.genes)
                 self.assertTrue(gene in model_yaml.genes)
         finally:
-            if os.path.exists(out_dir):
-                if os.path.exists(os.path.join(out_dir, "textbook_model.json")):
-                    os.remove(os.path.join(out_dir, "textbook_model.json"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.xml")):
-                    os.remove(os.path.join(out_dir, "textbook_model.xml"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.yaml")):
-                    os.remove(os.path.join(out_dir, "textbook_model.yaml"))
-                if os.path.exists(os.path.join(out_dir, "textbook_model.mat")):
-                    os.remove(os.path.join(out_dir, "textbook_model.mat"))
-                os.rmdir(out_dir)
+            tmp_dir.cleanup()
 
 
 class TestModelEquality(unittest.TestCase):

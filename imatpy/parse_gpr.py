@@ -1,5 +1,6 @@
 # Standard Library Imports
 from __future__ import annotations
+
 import re
 from typing import Any
 
@@ -11,7 +12,7 @@ import pandas as pd
 def gene_to_rxn_weights(
     model: cobra.Model,
     gene_weights: pd.Series,
-    fn_dict: dict = None,
+    fn_dict: dict | None = None,
     fill_val: Any = 0,
 ) -> pd.Series:
     """
@@ -37,7 +38,9 @@ def gene_to_rxn_weights(
     return rxn_weights
 
 
-def eval_gpr(gpr: str, gene_weights: pd.Series, fn_dict: dict = None) -> Any | None:
+def eval_gpr(
+    gpr: str, gene_weights: pd.Series, fn_dict: dict | None = None
+) -> Any | None:
     """
     Evaluate a single GPR string using the provided gene weights and
     function dictionary.
@@ -70,7 +73,7 @@ def eval_gpr(gpr: str, gene_weights: pd.Series, fn_dict: dict = None) -> Any | N
     return eval_stack.pop()
 
 
-def str_to_list(in_string: str, replacements: dict = None) -> list[str]:
+def str_to_list(in_string: str, replacements: dict | None = None) -> list[str]:
     """
     Convert a string to a list of strings, splitting on whitespace and
     parentheses.
@@ -149,7 +152,7 @@ def process_token(token, postfix, operator_stack, precedence):
         return
 
 
-def to_postfix(infix: list[str], precedence: dict = None) -> list[str]:
+def to_postfix(infix: list[str], precedence: dict | None = None) -> list[str]:
     """
     Convert an infix expression to postfix notation.
     :param infix: list[str]: A list of strings representing an infix expression

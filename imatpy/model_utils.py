@@ -4,6 +4,7 @@ Module for model utilities
 
 # External Imports
 from __future__ import annotations
+
 import cobra
 import optlang.container
 from sympy import parse_expr
@@ -227,9 +228,7 @@ def _check_dictlist_eq(dictlist1: cobra.DictList, dictlist2: cobra.DictList) -> 
     """
     if not _check_dictlist_subset(dictlist1, dictlist2):
         return False
-    if not _check_dictlist_subset(dictlist2, dictlist1):
-        return False
-    return True
+    return _check_dictlist_subset(dictlist2, dictlist1)
 
 
 def _check_optlang_container_subset(
@@ -266,9 +265,7 @@ def _check_optlang_container_eq(
     """
     if not _check_optlang_container_subset(cont1, cont2):
         return False
-    if not _check_optlang_container_subset(cont2, cont1):
-        return False
-    return True
+    return _check_optlang_container_subset(cont2, cont1)
 
 
 def _check_reaction_eq(

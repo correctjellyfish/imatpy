@@ -4,7 +4,6 @@ Submodule with functions for creating a context specific model using iMAT
 
 # Standard Library Imports
 from __future__ import annotations
-from typing import Union
 
 # External Imports
 import cobra
@@ -13,7 +12,7 @@ import pandas as pd
 import sympy as sym
 
 # Local Imports
-from imatpy.imat import imat, add_imat_constraints, add_imat_objective_
+from imatpy.imat import add_imat_constraints, add_imat_objective_, imat
 
 # define defaults for the iMAT functions
 DEFAULTS = {
@@ -27,7 +26,7 @@ DEFAULTS = {
 # region: Main Model Creation Function
 def generate_model(
     model: cobra.Model,
-    rxn_weights: Union[pd.Series, dict],
+    rxn_weights: pd.Series | dict,
     method: str = "imat_restrictions",
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],

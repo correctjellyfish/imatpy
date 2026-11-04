@@ -5,14 +5,14 @@ model, and running iMAT
 
 # Standard Library Imports
 from __future__ import annotations
+
 import re
-from typing import Union
 
 # External Imports
 import cobra
-from cobra.core.configuration import Configuration
 import numpy as np
 import pandas as pd
+from cobra.core.configuration import Configuration
 
 try:
     from symengine import Add
@@ -34,7 +34,7 @@ BINARY_REGEX = re.compile(r"y_(pos|neg)_(.+)")
 # region: Main iMat Function
 def imat(
     model: cobra.Model,
-    rxn_weights: Union[pd.Series, dict],
+    rxn_weights: pd.Series | dict,
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
 ) -> cobra.Solution:
@@ -159,7 +159,7 @@ def compute_imat_objective(
 # region: iMAT Helper Functions
 def add_imat_constraints_(
     model: cobra.Model,
-    rxn_weights: Union[pd.Series, dict],
+    rxn_weights: pd.Series | dict,
     epsilon: float = DEFAULTS["epsilon"],
     threshold: float = DEFAULTS["threshold"],
 ) -> cobra.Model:
@@ -215,9 +215,7 @@ def add_imat_constraints(
     return imat_model
 
 
-def add_imat_objective_(
-    model: cobra.Model, rxn_weights: Union[pd.Series, dict]
-) -> None:
+def add_imat_objective_(model: cobra.Model, rxn_weights: pd.Series | dict) -> None:
     """
     Add the IMAT objective to the model (updates the model in place).
     Model must already have iMAT constraints added.
@@ -251,7 +249,7 @@ def add_imat_objective_(
 
 
 def add_imat_objective(
-    model: cobra.Model, rxn_weights: Union[pd.Series, dict]
+    model: cobra.Model, rxn_weights: pd.Series | dict
 ) -> cobra.Model:
     """
     Add the IMAT objective to the model (doesn't change passed model).
