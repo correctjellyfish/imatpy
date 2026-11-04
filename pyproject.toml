@@ -13,6 +13,7 @@ dependencies = [
   "optlang>=1.8.1",
   "sympy>=1.12",
   "scipy>=1.12.0",
+  "python-libsbml>=5.19, <5.21.2; python_version=='3.9'",
 ]
 
 [project.urls]
