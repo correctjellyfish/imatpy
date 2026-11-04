@@ -1,6 +1,6 @@
 [project]
 name = "imatpy"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python implementation of the Integrative Metabolic Analysis Tool (iMAT) algorithm for context specific metabolic modeling."
 authors = [{ name = "Braden Griebel", email = "bgriebel@uw.edu" }]
 # Pinning python to less than 3.13, as cobra has bug in 3.13 with copy functions (fixed in next cobra release)
@@ -8,12 +8,12 @@ requires-python = ">=3.9,<3.13"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "cobra>=0.27.0",
-    "numpy>=1.26.0",
-    "pandas>=2.0.0",
-    "optlang>=1.8.3",
-    "sympy>=1.12",
-    "scipy>=1.12.0",
+  "cobra>=0.27.0",
+  "numpy>=1.26.0",
+  "pandas>=2.0.0",
+  "optlang>=1.8.3",
+  "sympy>=1.12",
+  "scipy>=1.12.0",
 ]
 
 [project.urls]
@@ -26,22 +26,16 @@ gurobipy = ["gurobipy>=11.0.0"]
 cplex = ["cplex>=22.1.1.1"]
 
 [dependency-groups]
-dev = [
-    "pytest>=7.4.2,<8",
-    "ruff>=0.12.0",
-]
+dev = ["pytest>=7.4.2,<8", "ruff>=0.12.0"]
 docs = [
-    "sphinx>=7.2.6,<8",
-    "sphinx-exec-code>=0.10,<0.11",
-    "sphinx-rtd-theme>=1.3.0,<2",
-    "jupyter>=1.0.0,<2",
+  "sphinx>=7.2.6,<8",
+  "sphinx-exec-code>=0.10,<0.11",
+  "sphinx-rtd-theme>=1.3.0,<2",
+  "jupyter>=1.0.0,<2",
 ]
 
 [tool.uv]
-default-groups = [
-    "dev",
-    "docs",
-]
+default-groups = ["dev", "docs"]
 
 [build-system]
 requires = ["hatchling"]
