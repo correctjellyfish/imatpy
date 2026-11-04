@@ -33,7 +33,7 @@ hybrid = ["highspy>=1.10.0", "osqp>=1.0.3"]
 
 [dependency-groups]
 dev = [
-  "ruff<1.0.0,>=0.11.0",
+  "ruff<1.0.0,>=0.15.0",
   "ty>=0.0.10",
   "pre-commit<4.0.0,>=3.7.1",
   "pandas-stubs>=2.2.2.240807",
