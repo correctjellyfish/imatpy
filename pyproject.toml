@@ -1,6 +1,6 @@
 [project]
 name = "imatpy"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python implementation of the Integrative Metabolic Analysis Tool (iMAT) algorithm for context specific metabolic modeling."
 authors = [{ name = "Braden Griebel", email = "bgriebel@uw.edu" }]
 requires-python = ">=3.9,<3.15"
