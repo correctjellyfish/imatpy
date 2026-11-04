@@ -13,7 +13,11 @@ import cobra
 from cobra.core.configuration import Configuration
 import numpy as np
 import pandas as pd
-import sympy as sym
+
+try:
+    from symengine import Add
+except ModuleNotFoundError:
+    from sympy import Add
 
 # Local Imports
 
@@ -241,7 +245,7 @@ def add_imat_objective_(
         # Note: Only one variable for lowly expressed reactions
         rl_obj += [variable]
     imat_obj = model.solver.interface.Objective(
-        sym.Add(*rh_obj) + sym.Add(*rl_obj), direction="max"
+        Add(*rh_obj) + Add(*rl_obj), direction="max"
     )
     model.objective = imat_obj
 

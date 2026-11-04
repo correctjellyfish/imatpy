@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 5
 requires-python = ">=3.9, <3.13"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -357,18 +357,26 @@ name = "cplex"
 version = "22.1.2.0"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/d6/90b436de5b4f2e2e8c99cbabc2a295e670536d302f7fcb4517b135599754/cplex-22.1.2.0-cp310-cp310-macosx_10_6_x86_64.whl", hash = "sha256:3045967d8122d9dc1e2afbc72f6e029a5c1fc149c1d8a14b7ab84cf2270bf700", size = 39827858, upload-time = "2025-09-17T10:42:01.188Z" },
+    { url = "https://files.pythonhosted.org/packages/24/de/9cb975c20505d408e1acb886bcbeb9712477e32c3213060801f7e87273c3/cplex-22.1.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:9a3f2d049221894654cfb3ab7123574759f3446a01cee804110aa73425318307", size = 29350040, upload-time = "2025-09-17T10:42:04.385Z" },
     { url = "https://files.pythonhosted.org/packages/2f/9e/3e11907eeedd11bfbe71d6d834fff11e1c4804a3b56f9512fc39c317099a/cplex-22.1.2.0-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:05aa14e05a374eef925618b7b229fb6720932573247aae7f1766efb74385a534", size = 32635219, upload-time = "2024-12-13T13:44:51.93Z" },
     { url = "https://files.pythonhosted.org/packages/20/a0/36e099f3a7d1f524ccbd0c3a02bf443a1ea07c5460dfc962e1dc5041ce03/cplex-22.1.2.0-cp310-cp310-manylinux2014_ppc64le.whl", hash = "sha256:e7097f6cc23180e97a63d5dfdcb37ab9833fffdc38fa7ee34e7ec6e5d34a8d0f", size = 37077340, upload-time = "2024-12-13T13:44:59.225Z" },
     { url = "https://files.pythonhosted.org/packages/5a/44/a6d070104f9b25c064caf7c627b551986232c10702e8ad0ab4b91664fafd/cplex-22.1.2.0-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:c43e67eac01a89b71b2ede70257889bf74a0d2c221f0e31ffcdc101c5520f79c", size = 44299435, upload-time = "2024-12-13T13:45:07.28Z" },
     { url = "https://files.pythonhosted.org/packages/97/c5/0ef8a472122f87fdbacef60ad9aa16a30518c7e0c3268e335702d19f2784/cplex-22.1.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:c58101462cc8aee00ef041c003e9776a4877dd1563fc5d6a737a953ce51f9f83", size = 26383833, upload-time = "2024-12-13T13:45:12.721Z" },
+    { url = "https://files.pythonhosted.org/packages/42/4c/dddcfb67fbd9c4b60742ddbac728ae584a6be9ca71d24163225d05a1f472/cplex-22.1.2.0-cp311-cp311-macosx_10_6_x86_64.whl", hash = "sha256:09b5176113c9ab7f2c049afd534627d470381280e514426ff74d6703229010c7", size = 39827872, upload-time = "2025-09-17T10:42:07.774Z" },
+    { url = "https://files.pythonhosted.org/packages/af/d8/9891e218d15911675531b1d46a5039d6d76671c01482608c3c15281fb1b5/cplex-22.1.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:328eb996caa55f9e10271b9dd40391d12fe600f8f47ff26274977416d8163797", size = 29350168, upload-time = "2025-09-17T10:42:10.39Z" },
     { url = "https://files.pythonhosted.org/packages/90/67/ac721d3218574525454171c2c071d30e4c6e7434aaafa54272bd689a5393/cplex-22.1.2.0-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:f976ce0166bd0e68740e4b514d1395b4f16e8103ef50d9a8f157c1cc916db216", size = 32634872, upload-time = "2024-12-13T13:45:19.529Z" },
     { url = "https://files.pythonhosted.org/packages/05/04/239306c42047131c281c30f836f6668754cfe6aedc32ad029efe982cb38c/cplex-22.1.2.0-cp311-cp311-manylinux2014_ppc64le.whl", hash = "sha256:e875852bd46361b799950cc6854870a5e3d86f7238d4a8ba97648497521bb52b", size = 37077206, upload-time = "2024-12-13T13:45:25.409Z" },
     { url = "https://files.pythonhosted.org/packages/86/75/4519d08bf01eb41f61dc554e52bb2590a2ad63d2a0f79ccdfaa5f123f2f4/cplex-22.1.2.0-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:bee12d488df86da5142ccb986fdf537df9ccff8837f33e5f0bc504b0e9b5d3f7", size = 44299356, upload-time = "2024-12-13T13:45:33.377Z" },
     { url = "https://files.pythonhosted.org/packages/fd/c3/74e851371fbf493289edbe2058a9d715166fb46088c1edfa296771db11d1/cplex-22.1.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:afbbad8aaede41255b703ab758452df9a899dbad48366bd0c9991fb219d57062", size = 26383380, upload-time = "2024-12-13T13:45:40.712Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/78/17d434f23f8a9268c00a0c71f5aad308596aa208cc8e8a3a26655bf1f521/cplex-22.1.2.0-cp312-cp312-macosx_10_6_x86_64.whl", hash = "sha256:1e7693a00bc35ada61c63b13a0a0eaae5050ff51d4aedf39b2bf361d87f76ae3", size = 39858005, upload-time = "2025-09-17T10:42:13.367Z" },
+    { url = "https://files.pythonhosted.org/packages/93/ad/2529eb350ee0f275f5978737f235a71193aacbf2e1beeac242309df5e1c5/cplex-22.1.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1e683f2028bc6ec9999f9635fb5c11e8061f489af4a5691a3ec5c66dacb6ef2f", size = 29351235, upload-time = "2025-09-17T10:42:16.498Z" },
     { url = "https://files.pythonhosted.org/packages/60/97/228d13ce5df3b74aaa914b70d8d1e596b9088b8aa82338bb1cc3dd0d5cf5/cplex-22.1.2.0-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:feb5b9c6f437c3cacb0dc6b12fde6bdf6e266074cac9f535e641794363a26254", size = 32637789, upload-time = "2024-12-13T13:45:47.388Z" },
     { url = "https://files.pythonhosted.org/packages/b3/fb/1a3f6dea37e7a40c4a9f59f2503cda74f64444a052d8b49dd1e8acb489c3/cplex-22.1.2.0-cp312-cp312-manylinux2014_ppc64le.whl", hash = "sha256:3e8fd6127121a28ac6499cda16c5a96fa45e5ba92c20f44abc18ee734aef819e", size = 37079464, upload-time = "2024-12-13T13:45:54.155Z" },
     { url = "https://files.pythonhosted.org/packages/f4/60/6314e38fa2a0f7203933df52dfdbca3d6329a3093150292973eff6ce2390/cplex-22.1.2.0-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:0c28a0a3b1dde31d2640965feb5d7c513ade2ad4faabf58f7783c21093674b8b", size = 44327178, upload-time = "2024-12-13T13:46:03.197Z" },
     { url = "https://files.pythonhosted.org/packages/42/35/a73d1f0f927af625cbd2709da8463ece75b2f453529a85e0f1117f70e90c/cplex-22.1.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:aa3c0ecec114a0e706def5674f94f04a44b6c5500168909381c034951677fcca", size = 26347125, upload-time = "2024-12-13T13:46:11.52Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/95/f849f1ddcfc687e7f8e73af80a5366041b1a0a97e8ceb01bab1eb32b0706/cplex-22.1.2.0-cp39-cp39-macosx_10_6_x86_64.whl", hash = "sha256:8650b9a80d100433fc1514b7d2cd0c10c53444672d8c1cad36845ac932ddb6e2", size = 39827964, upload-time = "2025-09-17T10:42:19.627Z" },
+    { url = "https://files.pythonhosted.org/packages/28/87/a20cedf8ac851e0cf7cc972569773ad1749ee66f81d04e57a1d22a43347f/cplex-22.1.2.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:e86b021fb89896a3d1b116d20c9a2baad600fca03ab7992d16742c4b1c97fc04", size = 29350018, upload-time = "2025-09-17T10:42:22.639Z" },
     { url = "https://files.pythonhosted.org/packages/55/cf/5aad3d747f9bbc8274bf30b3fcb3247f991bc5175429c75b00413f75d487/cplex-22.1.2.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:9332932334e3a9682a2a239a08c0169fe50e3f8d08fec84b9b120c7191c90737", size = 32635343, upload-time = "2024-12-13T13:46:16.683Z" },
     { url = "https://files.pythonhosted.org/packages/fa/c3/88efe95b74ead8dc7209273b689706bd2d4ed17b4f2e734951590361e7d5/cplex-22.1.2.0-cp39-cp39-manylinux2014_ppc64le.whl", hash = "sha256:52ae74c59bac3d9a1319b7a6e4c0be94a9dc223fbcd028601dbf347ef8755ca4", size = 37077549, upload-time = "2024-12-13T13:46:22.598Z" },
     { url = "https://files.pythonhosted.org/packages/d4/c8/c101bce5fd6525e3487b0879ab3854e3e3b511901b88caaa61dd9a1ac557/cplex-22.1.2.0-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:3c8dc025044718863493fa8912ef6de5a70e8440e9fb0b59748b0207064f1507", size = 44299441, upload-time = "2024-12-13T13:46:30.164Z" },
@@ -564,8 +572,9 @@ wheels = [
 
 [[package]]
 name = "imatpy"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
+default-groups = ["dev", "docs"]
 dependencies = [
     { name = "cobra" },
     { name = "numpy" },
@@ -626,7 +635,7 @@ name = "importlib-metadata"
 version = "6.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.10'" },
+    { name = "zipp" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/33/44/ae06b446b8d8263d712a211e959212083a5eda2bf36d57ca7415e03f6f36/importlib_metadata-6.8.0.tar.gz", hash = "sha256:dbace7892d8c0c4ac1ad096662232f831d4e64f4c4545bd53016a3e9d4654743", size = 53494, upload-time = "2023-07-07T16:16:03.091Z" }
 wheels = [
@@ -2013,7 +2022,7 @@ resolution-markers = [
     "python_full_version < '3.10'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version < '3.10'" },
+    { name = "numpy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ae/00/48c2f661e2816ccf2ecd77982f6605b2950afe60f60a52b4cbbc2504aa8f/scipy-1.13.1.tar.gz", hash = "sha256:095a87a0312b08dfd6a6155cbbd310a8c51800fc931b8c0b84003014b874ed3c", size = 57210720, upload-time = "2024-05-23T03:29:26.079Z" }
 wheels = [
@@ -2053,7 +2062,7 @@ resolution-markers = [
     "python_full_version == '3.10.*'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version >= '3.10'" },
+    { name = "numpy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0f/37/6964b830433e654ec7485e45a00fc9a27cf868d622838f6b6d9c5ec0d532/scipy-1.15.3.tar.gz", hash = "sha256:eae3cf522bc7df64b42cad3925c876e1b0b6c35c1337c93e12c0f366f55b0eaf", size = 59419214, upload-time = "2025-05-08T16:13:05.955Z" }
 wheels = [
