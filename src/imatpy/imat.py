@@ -12,7 +12,13 @@ from typing import Literal
 # External Imports
 import cobra
 import pandas as pd
-import sympy as sym
+
+# NOTE: Need to import from symengine directly if it's installed
+# otherwise objective construction will fail
+try:
+    from symengine import Add  # ty: ignore[import-not-found]
+except ModuleNotFoundError:
+    from sympy import Add
 
 # Local Imports
 from imatpy.imatpy_defaults import IMAT_DEFAULTS
@@ -266,8 +272,7 @@ def add_imat_objective_(
         rxn_weights = pd.Series(rxn_weights)
     rh = rxn_weights[rxn_weights > ALMOST_ZERO]
     rl = rxn_weights[rxn_weights < -ALMOST_ZERO]
-    rh_obj = []
-    rl_obj = []
+    obj = []
     for rxn, weight in rh.items():  # For each highly expressed reaction
         # Get the forward and reverse variables from the model
         forward_variable = model.solver.variables[
@@ -285,7 +290,7 @@ def add_imat_objective_(
             )
         ]
         # Adds the two variables to the rh list which will be used for sum
-        rh_obj += [forward_variable * weight, reverse_variable * weight]
+        obj += [forward_variable * weight, reverse_variable * weight]
     for rxn, weight in rl.items():  # For each lowly expressed reaction
         variable = model.solver.variables[
             _get_rxn_imat_binary_variable_name(
@@ -295,10 +300,8 @@ def add_imat_objective_(
             )
         ]
         # Note: Only one variable for lowly expressed reactions
-        rl_obj += [variable * abs(weight)]
-    imat_obj = model.solver.interface.Objective(
-        sym.Add(*rh_obj, *rl_obj), direction="max"
-    )
+        obj += [variable * abs(weight)]
+    imat_obj = model.solver.interface.Objective(Add(*obj), direction="max")
     model.objective = imat_obj
 
 
