@@ -3,7 +3,7 @@
 ![iMATpy Logo](imatpy_logo.png "iMATpy Logo")
 
 [![Documentation Status](https://readthedocs.org/projects/imatpy/badge/?version=latest)](https://imatpy.readthedocs.io/en/latest/?badge=latest)
-[![Tests](https://github.com/Braden-Griebel/imatpy/actions/workflows/tests.yml/badge.svg)](https://github.com/Braden-Griebel/imatpy/actions/workflows/tests.yml/badge.svg)
+[![Tests](https://github.com/correctjellyfish/imatpy/actions/workflows/check.yml/badge.svg)](https://github.com/correctjellyfish/imatpy/actions/workflows/check.yml/badge.svg)
 
 ## About
 
