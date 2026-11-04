@@ -6,7 +6,9 @@ Module for model utilities
 from __future__ import annotations
 
 import cobra
+import numpy as np
 import optlang.container
+import pandas as pd
 from sympy import parse_expr
 
 
@@ -15,11 +17,18 @@ def read_model(model_path, file_type=None):
     """
     Read a model from a file
 
-    :param model_path: Path to the model file
-    :type model_path: str | pathlib.Path
-    :param file_type: Type of the file
-    :type file_type: str
-    :return: The model
+    Parameters
+    ----------
+    model_path : str | pathlib.Path
+        Path to the model file
+    file_type : str
+        Type of the file (Default value = None)
+
+    Returns
+    -------
+    cobra.Model
+        The model
+
     """
     if file_type is None:
         model_path = str(model_path)
@@ -56,16 +65,16 @@ def read_model(model_path, file_type=None):
 
 
 def write_model(model, model_path, file_type=None):
-    """
-    Write a model to a file
+    """Write a model to a file
 
-    :param model: Model to write
-    :type model: cobra.Model
-    :param model_path: Path to the model file
-    :type model_path: str
-    :param file_type: Type of the file
-    :type file_type: str
-    :return: Nothing
+    Parameters
+    ----------
+    model : cobra.Model
+        Model to write
+    model_path : str
+        Path to the model file
+    file_type : str
+        Type of the file (Default value = None)
     """
     if file_type is None:
         model_path = str(model_path)
@@ -101,12 +110,18 @@ def write_model(model, model_path, file_type=None):
 
 
 def _parse_file_type(file_type):
-    """
-    Parse the file type
-    :param file_type: File type to parse
-    :type file_type: str
-    :return: Parsed file type
-    :rtype: str
+    """Parse the file type
+
+    Parameters
+    ----------
+    file_type : str
+        File type to parse
+
+    Returns
+    -------
+    str
+        Parsed file type
+
     """
     if file_type.lower() in ["json", "jsn"]:
         return "json"
@@ -127,19 +142,25 @@ def _parse_file_type(file_type):
 # endregion: Model IO
 
 
-# region Model Comparison
-def model_eq(model1: cobra.Model, model2: cobra.Model, verbose: bool = False) -> bool:
-    """
-    Check if two cobra models are equal.
+# region: Model Comparison
+def model_eq(
+    model1: cobra.Model, model2: cobra.Model, verbose: bool = False
+) -> bool:
+    """Check if two cobra models are equal.
 
-    :param model1: The first model to compare.
-    :type model1: cobra.Model
-    :param model2: The second model to compare.
-    :type model2: cobra.Model
-    :param verbose: Whether to print where the models differ (default: False).
-    :type verbose: bool
-    :return: True if the models are equal, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    model1 : cobra.Model
+        The first model to compare.
+    model2 : cobra.Model
+        The second model to compare.
+    verbose : bool
+        Whether to print where the models differ (default: False).
+
+    Returns
+    -------
+    bool
+        True if the models are equal, False otherwise.
     """
     if verbose:
         print("Verbose model comparison")
@@ -162,7 +183,9 @@ def model_eq(model1: cobra.Model, model2: cobra.Model, verbose: bool = False) ->
         if not _check_reaction_eq(reaction1, reaction2, verbose=verbose):
             return False
     # Check objective
-    if not _check_objective_eq(model1.objective, model2.objective, verbose=verbose):
+    if not _check_objective_eq(
+        model1.objective, model2.objective, verbose=verbose
+    ):
         if verbose:
             print("Models have different objectives")
             print(f"Model 1 objective: {model1.objective}")
@@ -196,18 +219,73 @@ def model_eq(model1: cobra.Model, model2: cobra.Model, verbose: bool = False) ->
     return True
 
 
+def model_bounds_eq(
+    model1: cobra.Model, model2: cobra.Model, **kwargs
+) -> bool:
+    """Check if the bounds of two models are equal
+
+    Parameters
+    ----------
+    model1 : cobra.Model
+        First model to compare
+    model2 : cobra.Model
+        Second model to compare
+    **kwargs : dict[str, Any]
+        Additional keyword arguments passed to numpy isclose function to
+        check equality
+
+    Returns
+    -------
+    bool
+        True if the model bounds are equal, false otherwise
+    """
+    # First check that the models have the same reactions
+    model1_rxns = set(model1.reactions.list_attr("id"))
+    model2_rxns = set(model2.reactions.list_attr("id"))
+    if model1_rxns != model2_rxns:
+        raise ValueError(
+            "To compare reaction bounds, models must have the same reactions, but model1 and model2 have different reactions"
+        )
+    # Get the upper and lower bounds from the models
+    model1_lb = pd.Series(
+        model1.reactions.list_attr("lower_bound"),
+        index=model1.reactions.list_attr("id"),
+    )
+    model1_ub = pd.Series(
+        model1.reactions.list_attr("upper_bound"),
+        index=model1.reactions.list_attr("id"),
+    )
+    model2_lb = pd.Series(
+        model2.reactions.list_attr("lower_bound"),
+        index=model2.reactions.list_attr("id"),
+    )
+    model2_ub = pd.Series(
+        model2.reactions.list_attr("upper_bound"),
+        index=model2.reactions.list_attr("id"),
+    )
+    # Check if the bounds are the same
+    return bool(
+        np.isclose(model1_lb, model2_lb, **kwargs).all()
+        and np.isclose(model1_ub, model2_ub, **kwargs).all()
+    )
+
+
 def _check_dictlist_subset(
     dictlist1: cobra.DictList, dictlist2: cobra.DictList
 ) -> bool:
-    """
-    Check if dictlist1 is a subset of dictlist2.
+    """Check if dictlist1 is a subset of dictlist2.
 
-    :param dictlist1: The first dictlist to compare.
-    :type dictlist1: cobra.DictList
-    :param dictlist2: The second dictlist to compare.
-    :type dictlist2: cobra.DictList
-    :return: True if dictlist1 is a subset of dictlist2, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    dictlist1 : cobra.DictList
+        The first dictlist to compare.
+    dictlist2 : cobra.DictList
+        The second dictlist to compare.
+
+    Returns
+    -------
+    bool
+        True if dictlist1 is a subset of dictlist2, False otherwise.
     """
     for val in dictlist1:
         if val not in dictlist2:
@@ -215,16 +293,22 @@ def _check_dictlist_subset(
     return True
 
 
-def _check_dictlist_eq(dictlist1: cobra.DictList, dictlist2: cobra.DictList) -> bool:
-    """
-    Check if two dictlists are equal.
+def _check_dictlist_eq(
+    dictlist1: cobra.DictList, dictlist2: cobra.DictList
+) -> bool:
+    """Check if two dictlists are equal.
 
-    :param dictlist1: The first dictlist to compare.
-    :type dictlist1: cobra.DictList
-    :param dictlist2: The second dictlist to compare.
-    :type dictlist2: cobra.DictList
-    :return: True if the dictlists are equal, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    dictlist1 : cobra.DictList
+        The first dictlist to compare.
+    dictlist2 : cobra.DictList
+        The second dictlist to compare.
+
+    Returns
+    -------
+    bool
+        True if the dictlists are equal, False otherwise.
     """
     if not _check_dictlist_subset(dictlist1, dictlist2):
         return False
@@ -234,15 +318,19 @@ def _check_dictlist_eq(dictlist1: cobra.DictList, dictlist2: cobra.DictList) -> 
 def _check_optlang_container_subset(
     cont1: optlang.container.Container, cont2: optlang.container.Container
 ) -> bool:
-    """
-    Check if cont1 is a subset of cont2.
+    """Check if cont1 is a subset of cont2.
 
-    :param cont1: The first container to compare.
-    :type cont1: optlang.container.Container
-    :param cont2: The second container to compare.
-    :type cont2: optlang.container.Container
-    :return: True if cont1 is a subset of cont2, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    cont1 : optlang.container.Container
+        The first container to compare.
+    cont2 : optlang.container.Container
+        The second container to compare.
+
+    Returns
+    -------
+    bool
+        True if cont1 is a subset of cont2, False otherwise.
     """
     for val in cont1:
         if val.name not in cont2:
@@ -253,15 +341,19 @@ def _check_optlang_container_subset(
 def _check_optlang_container_eq(
     cont1: optlang.container.Container, cont2: optlang.container.Container
 ) -> bool:
-    """
-    Check if two optlang containers are equal.
+    """Check if two optlang containers are equal.
 
-    :param cont1: The first container to compare.
-    :type cont1: optlang.container.Container
-    :param cont2: The second container to compare.
-    :type cont2: optlang.container.Container
-    :return: True if the containers are equal, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    cont1 : optlang.container.Container
+        The first container to compare.
+    cont2 : optlang.container.Container
+        The second container to compare.
+
+    Returns
+    -------
+    bool
+        True if the containers are equal, False otherwise.
     """
     if not _check_optlang_container_subset(cont1, cont2):
         return False
@@ -271,18 +363,24 @@ def _check_optlang_container_eq(
 def _check_reaction_eq(
     rxn1: cobra.Reaction, rxn2: cobra.Reaction, verbose: bool = False
 ) -> bool:
-    """
-    Check if two reactions are equal.
+    """Check if two reactions are equal.
 
-    :param rxn1: The first reaction to compare.
-    :type rxn1: cobra.Reaction
-    :param rxn2: The second reaction to compare.
-    :type rxn2: cobra.Reaction
-    :param verbose: Whether to print where the reactions differ
+    Parameters
+    ----------
+    rxn1 : cobra.Reaction
+        The first reaction to compare.
+    rxn2 : cobra.Reaction
+        The second reaction to compare.
+    verbose : bool
+        Whether to print where the reactions differ
+
+
     (default: False).
-    :type verbose: bool
-    :return: True if the reactions are equal, False otherwise.
-    :rtype: bool
+
+    Returns
+    -------
+    bool
+        True if the reactions are equal, False otherwise.
     """
     if rxn1.lower_bound != rxn2.lower_bound:
         if verbose:
@@ -312,21 +410,23 @@ def _check_reaction_eq(
 
 
 def _check_expression_eq(expr1, expr2, verbose=False) -> bool:
-    """
-    Check if two sympy or optlang expressions are equal.
+    """Check if two sympy or optlang expressions are equal.
 
-    :param expr1: The first expression to compare.
-    :type expr1: sympy.Expr or optlang.Expression
-    :param expr2: The second expression to compare.
-    :type expr2: sympy.Expr or optlang.Expression
-    :param verbose: Whether to print where the expressions differ
-        (default: False).
-    :type verbose: bool
-    :return: True if the expressions are equal, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    expr1 : sympy.Expr or optlang.Expression
+        The first expression to compare.
+    expr2 : sympy.Expr or optlang.Expression
+        The second expression to compare.
+    verbose : bool
+        Whether to print where the expressions differ (default: False).
+
+    Returns
+    -------
+    bool
+        True if the expressions are equal, False otherwise.
     """
     if parse_expr(str(expr1)) - parse_expr(str(expr2)) != 0:
-        print("ENTERED IF STATEMENT")
         if verbose:
             print(f"Expressions {expr1} and {expr2} are not equal")
         return False
@@ -334,18 +434,21 @@ def _check_expression_eq(expr1, expr2, verbose=False) -> bool:
 
 
 def _check_objective_eq(objective1, objective2, verbose=False) -> bool:
-    """
-    Check if two objectives are equal.
+    """Check if two objectives are equal.
 
-    :param objective1: The first objective to compare.
-    :type objective1: cobra.core.objective.Objective
-    :param objective2: The second objective to compare.
-    :type objective2: cobra.core.objective.Objective
-    :param verbose: Whether to print where the objectives differ
-        (default: False).
-    :type verbose: bool
-    :return: True if the objectives are equal, False otherwise.
-    :rtype: bool
+    Parameters
+    ----------
+    objective1 : cobra.core.objective.Objective
+        The first objective to compare.
+    objective2 : cobra.core.objective.Objective
+        The second objective to compare.
+    verbose : bool
+        Whether to print where the objectives differ (default: False).
+
+    Returns
+    -------
+    bool
+        True if the objectives are equal, False otherwise.
     """
     expr1 = objective1.expression
     expr2 = objective2.expression
@@ -376,7 +479,9 @@ def _check_variable_eq(var1, var2, verbose: bool = False) -> bool:
     return True
 
 
-def _check_constraint_eq(constraint1, constraint2, verbose: bool = False) -> bool:
+def _check_constraint_eq(
+    constraint1, constraint2, verbose: bool = False
+) -> bool:
     if constraint1.lb != constraint2.lb:
         if verbose:
             print(f"Constraint {constraint1.name} has different lower bounds")

@@ -2,33 +2,36 @@
 import pathlib
 import unittest
 
-# External Imports
-from cobra.core.configuration import Configuration
 import numpy as np
 import pandas as pd
 
-import imatpy.imat
+# External Imports
+from cobra.core.configuration import Configuration
 
-# Local Imports
-from imatpy.model_utils import read_model
+import imatpy.imat
+from imatpy.imat import (
+    _get_rxn_imat_binary_variable_name,
+    compute_imat_objective,
+)
 from imatpy.model_creation import (
+    _active_bounds,
+    _inactive_bounds,
+    _milp_eval,
+    _parse_method,
+    fva_model,
     imat_constraint_model,
+    milp_model,
     simple_bounds_model,
     subset_model,
-    fva_model,
-    milp_model,
-    _parse_method,
-    _inactive_bounds,
-    _active_bounds,
-    _milp_eval,
 )
-from imatpy.model_utils import _check_objective_eq, model_eq
-from imatpy.imat import compute_imat_objective
+
+# Local Imports
+from imatpy.model_utils import _check_objective_eq, model_eq, read_model
 
 
 def setup(cls):
     Configuration().solver = "glpk"  # Use GLPK solver for testing
-    cls.data_path = pathlib.Path(__file__).parent.absolute() / "data"
+    cls.data_path = pathlib.Path(__file__).absolute().parent / "data"
     cls.model = read_model(cls.data_path / "test_model.xml")
     cls.rxn_weights = pd.read_csv(
         cls.data_path / "test_model_reaction_weights.csv",
@@ -38,10 +41,6 @@ def setup(cls):
     cls.epsilon = 1
     cls.threshold = 1e-2
     cls.objective_tolerance = 5e-2
-
-
-class TestGenerateModel(unittest.TestCase):
-    pass
 
 
 class TestModelCreation(unittest.TestCase):
@@ -57,6 +56,10 @@ class TestModelCreation(unittest.TestCase):
         setup(cls)
 
     def test_imat_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         imat_sol = imatpy.imat.imat(
             model=test_model,
@@ -72,16 +75,50 @@ class TestModelCreation(unittest.TestCase):
             self.objective_tolerance,
         )
         # Check that the binary variables were added
-        self.assertTrue("y_pos_r_C_H" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_C_E_F" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_D_G" in imat_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" in imat_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" in imat_model.solver.variables)
-        self.assertTrue("y_neg_r_D_G" in imat_model.solver.variables)
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_C_H", expression_weight="low", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_C_E_F", expression_weight="low", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_D_G", expression_weight="high", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_D_G", expression_weight="high", which="negative"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_A_B_D_E", expression_weight="high", which="positive"
+            )
+            in imat_model.solver.variables
+        )
+        self.assertTrue(
+            _get_rxn_imat_binary_variable_name(
+                "r_A_B_D_E", expression_weight="high", which="negative"
+            )
+            in imat_model.solver.variables
+        )
         # Check that the imat constraint was added
-        self.assertTrue("imat_obj_constraint" in imat_model.solver.constraints)
+        self.assertTrue(
+            "imat_objective_constraint" in imat_model.solver.constraints
+        )
         # Check that the objective is the same as before
-        self.assertTrue(_check_objective_eq(test_model.objective, imat_model.objective))
+        self.assertTrue(
+            _check_objective_eq(test_model.objective, imat_model.objective)
+        )
         # Check that the test_model hasn't been modified
         self.assertTrue(model_eq(test_model, self.model))
         # Check that optimization respected imat constraint
@@ -92,12 +129,17 @@ class TestModelCreation(unittest.TestCase):
             epsilon=self.epsilon,
             threshold=self.threshold,
         )
+        assert self.objective_tolerance is not None
         self.assertTrue(
             np.abs(imat_objective - imat_sol.objective_value)
             < self.objective_tolerance * imat_sol.objective_value
         )
 
     def test_simple_bounds_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = simple_bounds_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
@@ -112,8 +154,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -121,6 +167,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_subset_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = subset_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
@@ -135,8 +185,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -144,6 +198,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_fva_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = fva_model(
             test_model,
@@ -162,8 +220,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -171,6 +233,10 @@ class TestModelCreation(unittest.TestCase):
         _ = updated_model.optimize()
 
     def test_milp_model(self):
+        assert self.model is not None, "Failed to setup test"
+        assert self.threshold is not None, "Failed to setup test"
+        assert self.epsilon is not None, "Failed to setup test"
+        assert self.rxn_weights is not None, "Failed to setup test"
         test_model = self.model.copy()
         updated_model = milp_model(
             test_model, self.rxn_weights, self.epsilon, self.threshold
@@ -185,8 +251,12 @@ class TestModelCreation(unittest.TestCase):
         self.assertTrue("y_pos_r_C_H" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_C_E_F" not in updated_model.solver.variables)
         self.assertTrue("y_pos_r_D_G" not in updated_model.solver.variables)
-        self.assertTrue("y_pos_r_A_B_D_E" not in updated_model.solver.variables)
-        self.assertTrue("y_neg_r_A_B_D_E" not in updated_model.solver.variables)
+        self.assertTrue(
+            "y_pos_r_A_B_D_E" not in updated_model.solver.variables
+        )
+        self.assertTrue(
+            "y_neg_r_A_B_D_E" not in updated_model.solver.variables
+        )
         self.assertTrue("y_neg_r_D_G" not in updated_model.solver.variables)
         # Check that the model has been changed
         self.assertFalse(model_eq(test_model, updated_model))
@@ -231,9 +301,11 @@ class TestHelperFunctions(unittest.TestCase):
             },
             index=["A", "B", "C", "D", "E", "F"],
         )
-        actual_results = test_df.apply(_milp_eval, axis=1).replace({np.nan: -1})
+        actual_results = test_df.apply(_milp_eval, axis=1).replace(
+            {np.nan: -2}
+        )
         expected_results = pd.Series(
-            [-1, 2, -1, 0, 1, 2], index=["A", "B", "C", "D", "E", "F"]
+            [-2, -1, -2, 0, 1, -1], index=["A", "B", "C", "D", "E", "F"]
         )
         self.assertTrue(np.all(actual_results == expected_results))
 
